@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getUsers,
   getUser,
+  createUser,
   updateUser,
   deleteUser,
   approveDriver,
@@ -13,12 +14,17 @@ const {
 } = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { adminOnly, adminOrDriver } = require('../middleware/roleMiddleware');
+const upload = require('../middleware/fileUpload');
 
 // All routes require authentication
 router.use(authMiddleware);
 
 // Admin or Driver routes (drivers can view users assigned to their bus)
 router.get('/', adminOrDriver, getUsers);
+router.post('/', adminOnly, upload.fields([
+  { name: 'profilePicture', maxCount: 1 },
+  { name: 'drivingLicense', maxCount: 1 }
+]), createUser);
 router.get('/stats', adminOnly, getUserStats);
 router.get('/pending-drivers', adminOnly, getPendingDrivers);
 router.get('/:id', adminOnly, getUser);

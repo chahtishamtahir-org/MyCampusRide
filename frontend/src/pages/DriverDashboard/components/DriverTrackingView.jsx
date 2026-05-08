@@ -8,13 +8,14 @@
  * - RouteStopsTimeline (visual stepper)
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container, Grid, Card, CardContent, Typography, Box, Button,
-  CircularProgress, Alert
+  CircularProgress, Alert, Chip
 } from '@mui/material';
-import { MyLocation, AccessTime } from '@mui/icons-material';
+import { MyLocation, AccessTime, GpsFixed, GpsOff } from '@mui/icons-material';
 import { trackingService, busService, routeService } from '../../../services';
+import { reverseGeocode } from '../../../utils/geocoding';
 import BusStatusCard from './tracking/BusStatusCard';
 import LocationCard from './tracking/LocationCard';
 import RouteInfoCard from './tracking/RouteInfoCard';
@@ -36,10 +37,86 @@ const DriverTrackingView = () => {
   const [routeName, setRouteName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [geoStatus, setGeoStatus] = useState('idle'); // 'idle' | 'acquiring' | 'live' | 'denied'
+  const watchIdRef = useRef(null);
+  const busInfoRef = useRef(null); // keep latest busInfo accessible inside watcher callback
+  const lastUpdateRef = useRef(0); // for throttling GPS updates
+
+  // Keep ref in sync with state
+  useEffect(() => { busInfoRef.current = busInfo; }, [busInfo]);
 
   useEffect(() => {
     loadTrackingData();
+    startLiveGeolocation();
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
   }, []);
+
+  /**
+   * Start watching the browser's GPS position.
+   * Updates locationData in state AND pushes to backend so the map and
+   * other components (and the DB) always have a real coordinate.
+   */
+  const startLiveGeolocation = () => {
+    if (!navigator.geolocation) {
+      setGeoStatus('denied');
+      return;
+    }
+    setGeoStatus('acquiring');
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        if (latitude === 0 && longitude === 0) return; // ignore invalid coords
+
+        // Throttle updates to once every 5 seconds to prevent UI flicker
+        const now = Date.now();
+        if (now - lastUpdateRef.current < 5000) return;
+        lastUpdateRef.current = now;
+
+        setGeoStatus(prev => prev !== 'live' ? 'live' : prev);
+        setLocationData(prev => ({
+          ...prev,
+          latitude,
+          longitude,
+          accuracy: Math.round(accuracy),
+          address: prev?.address && prev.address !== 'Address not available' && prev.address !== 'Fetching address...' && prev.address !== 'Live GPS location'
+            ? prev.address
+            : 'Fetching address...',
+          isOnTrip: prev?.isOnTrip || false,
+          lastUpdate: new Date().toISOString(),
+        }));
+
+        // Fetch actual address in background
+        reverseGeocode(latitude, longitude).then(address => {
+          setLocationData(prev => {
+            // Only update if location hasn't changed while fetching
+            if (prev?.latitude === latitude && prev?.longitude === longitude) {
+               return { ...prev, address };
+            }
+            return prev;
+          });
+          
+          // Persist to backend
+          if (busInfoRef.current?._id) {
+            trackingService.updateLocation({
+              latitude,
+              longitude,
+              address
+            }).catch(() => { });
+          }
+        });
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        setGeoStatus('denied');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
 
   const loadTrackingData = async () => {
     try {
@@ -51,6 +128,7 @@ const DriverTrackingView = () => {
       if (buses && buses.length > 0) {
         const driverBus = buses[0];
         setBusInfo(driverBus);
+        busInfoRef.current = driverBus;
 
         // Load route details for stops timeline
         if (driverBus.routeId) {
@@ -65,24 +143,25 @@ const DriverTrackingView = () => {
           }
         }
 
+        // Fetch last known location from backend
         try {
           const trackingResponse = await trackingService.getBusLocation(driverBus._id);
           const trackData = trackingResponse.data?.data || trackingResponse.data;
-          setLocationData({
-            latitude: trackData?.location?.latitude || 0,
-            longitude: trackData?.location?.longitude || 0,
-            address: trackData?.location?.address || 'Address not available',
-            isOnTrip: trackData?.isOnTrip || false,
-            lastUpdate: trackData?.lastUpdate || null,
-          });
+          const lat = trackData?.location?.latitude;
+          const lng = trackData?.location?.longitude;
+          // Only use DB location if it has real non-zero coordinates
+          if (lat && lng && lat !== 0 && lng !== 0) {
+            setLocationData({
+              latitude: lat,
+              longitude: lng,
+              address: trackData?.location?.address || 'Location not available',
+              isOnTrip: trackData?.isOnTrip || false,
+              lastUpdate: trackData?.lastUpdate || null,
+            });
+          }
+          // If DB has zeros, geolocation watcher will populate locationData once GPS fires
         } catch (err) {
-          setLocationData({
-            latitude: 0,
-            longitude: 0,
-            address: 'Address not available',
-            isOnTrip: false,
-            lastUpdate: null,
-          });
+          // Geolocation watcher will populate locationData
         }
       }
     } catch (err) {
@@ -93,26 +172,44 @@ const DriverTrackingView = () => {
     }
   };
 
-  const refreshLocation = async () => {
-    try {
-      setLoading(true);
-      if (busInfo) {
-        const trackingResponse = await trackingService.getBusLocation(busInfo._id);
-        const trackData = trackingResponse.data?.data || trackingResponse.data;
-        setLocationData({
-          latitude: trackData?.location?.latitude || 0,
-          longitude: trackData?.location?.longitude || 0,
-          address: trackData?.location?.address || 'Address not available',
-          isOnTrip: trackData?.isOnTrip || false,
-          lastUpdate: trackData?.lastUpdate || null,
-        });
-      }
-    } catch (err) {
-      console.error('Error refreshing location:', err);
-      setError('Failed to refresh location');
-    } finally {
-      setLoading(false);
+  const refreshLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation not supported by your browser');
+      return;
     }
+    setGeoStatus('acquiring');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setGeoStatus('live');
+        setLocationData(prev => ({
+          ...prev,
+          latitude,
+          longitude,
+          accuracy: Math.round(accuracy),
+          address: 'Fetching address...',
+          lastUpdate: new Date().toISOString(),
+        }));
+        
+        reverseGeocode(latitude, longitude).then(address => {
+          setLocationData(prev => {
+            if (prev?.latitude === latitude && prev?.longitude === longitude) {
+               return { ...prev, address };
+            }
+            return prev;
+          });
+          
+          if (busInfoRef.current?._id) {
+            trackingService.updateLocation({ latitude, longitude, address }).catch(() => { });
+          }
+        });
+      },
+      (err) => {
+        setGeoStatus('denied');
+        setError('Location access denied. Please allow GPS in your browser.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   if (loading) {
@@ -153,19 +250,43 @@ const DriverTrackingView = () => {
                 </Typography>
               </Box>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<AccessTime />}
-              onClick={refreshLocation}
-              disabled={loading}
-              sx={{
-                ...BUTTON_STYLES.primary,
-                px: 3,
-                py: 1,
-              }}
-            >
-              Refresh Location
-            </Button>
+            {/* Refresh Button + GPS status */}
+            <Box display="flex" alignItems="center" gap={1.5}>
+              {geoStatus === 'live' && (
+                <Chip
+                  icon={<GpsFixed sx={{ fontSize: 16 }} />}
+                  label="GPS Live"
+                  size="small"
+                  color="success"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+              {geoStatus === 'acquiring' && (
+                <Chip
+                  icon={<CircularProgress size={12} />}
+                  label="Acquiring GPS…"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+              {geoStatus === 'denied' && (
+                <Chip
+                  icon={<GpsOff sx={{ fontSize: 16 }} />}
+                  label="GPS denied"
+                  size="small"
+                  color="error"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+              <Button
+                variant="contained"
+                startIcon={<MyLocation />}
+                onClick={refreshLocation}
+                sx={{ ...BUTTON_STYLES.primary, px: 3, py: 1 }}
+              >
+                Refresh Location
+              </Button>
+            </Box>
           </Box>
 
           {/* Sub-components */}

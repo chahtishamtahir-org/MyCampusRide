@@ -85,9 +85,9 @@ const DriverOverviewView = () => {
       try {
         const tripStatusResponse = await trackingService.getMyTripStatus();
         const tripData = tripStatusResponse.data?.data || tripStatusResponse.data;
-        const status = tripData?.status || 'idle';
-        setTripStatus(status);
-        setIsOnTrip(tripData?.isOnTrip || status === 'on_trip');
+        const isTripActive = tripData?.isOnTrip || tripData?.status === 'on_trip';
+        setIsOnTrip(isTripActive);
+        setTripStatus(isTripActive ? 'on_trip' : 'idle');
       } catch (err) {
         console.error('Failed to check trip status:', err);
       }
@@ -112,11 +112,13 @@ const DriverOverviewView = () => {
         await trackingService.startTrip();
         setIsOnTrip(true);
         setTripStatus('on_trip');
+        setDriverBus(prev => prev ? { ...prev, status: 'on_trip' } : prev);
         toast.success('Trip started successfully! Location tracking is now active.');
       } else {
         await trackingService.stopTrip();
         setIsOnTrip(false);
         setTripStatus('idle');
+        setDriverBus(prev => prev ? { ...prev, status: 'active' } : prev);
         toast.success('Trip ended successfully.');
       }
     } catch (err) {
@@ -263,12 +265,13 @@ const DriverOverviewView = () => {
 
                   <Box display="flex" gap={1}>
                     <Chip
-                      label={driverBus.status || 'Unknown'}
+                      label={driverBus.status === 'on_trip' ? 'On Trip' : (driverBus.status || 'Unknown')}
                       size="small"
                       sx={{
-                        bgcolor: driverBus.status === 'active' ? BRAND_COLORS.successGreen : BRAND_COLORS.slate400,
+                        bgcolor: ['active', 'on_trip'].includes(driverBus.status?.toLowerCase()) ? BRAND_COLORS.successGreen : BRAND_COLORS.slate400,
                         color: BRAND_COLORS.white,
                         fontWeight: TYPOGRAPHY.weights.semibold,
+                        textTransform: 'capitalize'
                       }}
                     />
                     <Chip
@@ -458,21 +461,44 @@ const DriverOverviewView = () => {
                 </Box>
               </Box>
 
-              <Alert
-                severity="info"
-                icon={<LocationOn />}
-                sx={{
-                  borderRadius: BORDER_RADIUS.md,
-                  bgcolor: 'rgba(14, 165, 233, 0.08)',
-                  border: `1px solid ${BRAND_COLORS.skyBlue}`,
-                  color: BRAND_COLORS.slate700,
-                  '& .MuiAlert-icon': {
-                    color: BRAND_COLORS.skyBlue,
-                  },
-                }}
-              >
-                Location tracking is enabled when you start a trip. The system will update your location automatically during trips.
-              </Alert>
+              {isOnTrip ? (
+                <Alert
+                  severity="success"
+                  icon={<LocationOn />}
+                  sx={{
+                    borderRadius: BORDER_RADIUS.md,
+                    bgcolor: 'rgba(16, 185, 129, 0.08)',
+                    border: `1px solid ${BRAND_COLORS.successGreen}`,
+                    color: BRAND_COLORS.slate900,
+                    '& .MuiAlert-icon': {
+                      color: BRAND_COLORS.successGreen,
+                    },
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: TYPOGRAPHY.weights.bold, mb: 0.5 }}>
+                    Live Tracking Active
+                  </Typography>
+                  <Typography variant="body2">
+                    Your real-time position is currently being mapped and broadcasted to passengers.
+                  </Typography>
+                </Alert>
+              ) : (
+                <Alert
+                  severity="info"
+                  icon={<LocationOn />}
+                  sx={{
+                    borderRadius: BORDER_RADIUS.md,
+                    bgcolor: 'rgba(14, 165, 233, 0.08)',
+                    border: `1px solid ${BRAND_COLORS.skyBlue}`,
+                    color: BRAND_COLORS.slate700,
+                    '& .MuiAlert-icon': {
+                      color: BRAND_COLORS.skyBlue,
+                    },
+                  }}
+                >
+                  Location tracking is enabled when you start a trip. The system will update your location automatically during trips.
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Grid>

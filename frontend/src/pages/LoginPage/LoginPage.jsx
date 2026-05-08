@@ -54,7 +54,7 @@ const LoginPage = () => {
       } else if (name === 'password') {
         setFieldErrors(prev => ({ ...prev, password: validatePassword(value) }));
       }
-    }
+    } 
   };
 
   const handleBlur = (e) => {

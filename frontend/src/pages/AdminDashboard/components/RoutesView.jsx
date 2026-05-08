@@ -19,6 +19,7 @@ const RoutesView = () => {
   const [formData, setFormData] = useState({});
   const [stops, setStops] = useState([]);
   const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
   useEffect(() => {
     loadData();
@@ -68,7 +69,7 @@ const RoutesView = () => {
 
   const openAddDialog = () => {
     setDialogMode('add');
-    setFormData({ isActive: true, distance: 0, estimatedDuration: 0 });
+    setFormData({ isActive: true, distance: 1, estimatedDuration: 15 });
     setSelectedRoute(null);
     setStops([]);
     setOpenDialog(true);
@@ -97,6 +98,19 @@ const RoutesView = () => {
 
   const handleSubmit = async () => {
     try {
+      // Validation
+      if (!formData.routeNo || !formData.routeName || !formData.departureTime) {
+        throw new Error('Route number, name, and departure time are required');
+      }
+      
+      if (typeof formData.distance !== 'number' || formData.distance < 0.1) {
+        throw new Error('Distance must be at least 0.1 km');
+      }
+      
+      if (typeof formData.estimatedDuration !== 'number' || formData.estimatedDuration < 5) {
+        throw new Error('Estimated duration must be at least 5 minutes');
+      }
+      
       // Prepare route data with stops
       const validStops = stops.filter(s => s.name && s.pickupTime);
       const resequencedStops = validStops.map((stop, idx) => ({ ...stop, sequence: idx + 1 }));
@@ -114,7 +128,8 @@ const RoutesView = () => {
       loadData(); // Reload data
     } catch (error) {
       console.error('Error saving route:', error);
-      showSnack('Operation failed', 'error');
+      const errorMessage = error.response?.data?.message || error.message || 'Operation failed';
+      showSnack(errorMessage, 'error');
     }
   };
 
@@ -122,15 +137,21 @@ const RoutesView = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleDeleteRoute = async (routeId) => {
-    if (window.confirm('Are you sure you want to delete this route?')) {
+  const openDeleteDialog = (routeId) => {
+    setConfirmDialog({ open: true, id: routeId });
+  };
+
+  const handleDeleteRoute = async () => {
+    if (confirmDialog.id) {
       try {
-        await routeService.deleteRoute(routeId);
+        await routeService.deleteRoute(confirmDialog.id);
         showSnack('Route deleted');
+        setConfirmDialog({ open: false, id: null });
         loadData(); // Reload data
       } catch (error) {
         console.error('Error deleting route:', error);
         showSnack('Failed to delete route', 'error');
+        setConfirmDialog({ open: false, id: null });
       }
     }
   };
@@ -205,7 +226,7 @@ const RoutesView = () => {
                         <IconButton onClick={() => openEditDialog(route)}>
                           <Edit />
                         </IconButton>
-                        <IconButton onClick={() => handleDeleteRoute(route._id)} color="error">
+                        <IconButton onClick={() => openDeleteDialog(route._id)} color="error">
                           <Delete />
                         </IconButton>
                       </TableCell>
@@ -420,6 +441,18 @@ const RoutesView = () => {
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, id: null })}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent dividers>
+          <Typography>Are you sure you want to delete this route? This action cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, id: null })}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteRoute}>Delete</Button>
         </DialogActions>
       </Dialog>
 

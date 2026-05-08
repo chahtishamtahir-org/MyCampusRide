@@ -9,14 +9,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container, Grid, Card, CardContent, Typography, Box, TextField,
-  Button, Avatar, Chip, CircularProgress, Tab, Tabs
+  Button, Avatar, Chip, CircularProgress, Tab, Tabs, IconButton
 } from '@mui/material';
 import {
-  Person as PersonIcon, Email, Phone, Badge as BadgeIcon, Lock as LockIcon
+  Person as PersonIcon, Email, Phone, Badge as BadgeIcon, Lock as LockIcon, PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
 import { authService } from '../../../services';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../context/AuthContext';
 import {
   BRAND_COLORS,
   CARD_STYLES,
@@ -29,11 +30,14 @@ import {
 } from '../../../styles/brandStyles';
 
 const DriverProfileView = () => {
+  const { updateUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
   const [activeTab, setActiveTab] = useState(0);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -62,19 +66,30 @@ const DriverProfileView = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setProfilePicture(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setSaving(true);
-      await authService.updateProfile(formData);
+      
+      const updateData = new FormData();
+      if (formData.name) updateData.append('name', formData.name);
+      if (formData.email) updateData.append('email', formData.email);
+      if (formData.phone) updateData.append('phone', formData.phone);
+      if (profilePicture) updateData.append('profilePicture', profilePicture);
+
+      const response = await authService.updateProfile(updateData);
+      const updatedUser = response.data?.data || response.data;
+      
+      updateUser(updatedUser);
+      
       toast.success('Your profile has been updated successfully. Changes are now active.');
       loadUserData();
     } catch (err) {
@@ -142,27 +157,43 @@ const DriverProfileView = () => {
             <>
               {/* Profile Avatar with gradient border */}
               <Box textAlign="center" mb={4}>
-                <Box sx={{
-                  p: 0.5,
-                  borderRadius: '50%',
-                  background: BRAND_COLORS.primaryGradient,
-                  display: 'inline-flex',
-                  boxShadow: SHADOWS.buttonDefault,
-                }}>
-                  <Avatar
-                    src={user?.profilePicture ? `${API_URL}/${user.profilePicture}` : undefined}
+                <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Box sx={{
+                    p: 0.5,
+                    borderRadius: '50%',
+                    background: BRAND_COLORS.primaryGradient,
+                    display: 'inline-flex',
+                    boxShadow: SHADOWS.buttonDefault,
+                  }}>
+                    <Avatar
+                      src={previewUrl || (user?.profilePicture ? `${API_URL}/${user.profilePicture}` : undefined)}
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        bgcolor: BRAND_COLORS.white,
+                        color: BRAND_COLORS.skyBlue,
+                        fontSize: '2.5rem',
+                        fontWeight: TYPOGRAPHY.weights.bold,
+                        border: `3px solid ${BRAND_COLORS.white}`,
+                      }}
+                    >
+                      {user?.name?.charAt(0).toUpperCase() || 'D'}
+                    </Avatar>
+                  </Box>
+                  <IconButton
+                    component="label"
                     sx={{
-                      width: 120,
-                      height: 120,
+                      position: 'absolute',
+                      bottom: 4,
+                      right: 4,
                       bgcolor: BRAND_COLORS.white,
-                      color: BRAND_COLORS.skyBlue,
-                      fontSize: '2.5rem',
-                      fontWeight: TYPOGRAPHY.weights.bold,
-                      border: `3px solid ${BRAND_COLORS.white}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      '&:hover': { bgcolor: BRAND_COLORS.slate100 }
                     }}
                   >
-                    {user?.name?.charAt(0).toUpperCase() || 'D'}
-                  </Avatar>
+                    <PhotoCameraIcon sx={{ color: BRAND_COLORS.skyBlue, fontSize: 20 }} />
+                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                  </IconButton>
                 </Box>
                 <Typography variant="h6" sx={{
                   fontWeight: TYPOGRAPHY.weights.bold,

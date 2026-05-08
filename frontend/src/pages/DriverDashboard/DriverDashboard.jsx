@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DriverSidebar from './components/DriverSidebar';
@@ -7,7 +8,7 @@ import DriverHeader from './components/DriverHeader';
 import DriverOverviewView from './components/DriverOverviewView';
 import DriverTripsView from './components/DriverTripsView';
 import DriverTrackingView from './components/DriverTrackingView';
-import DriverLiveTrackingView from './components/DriverLiveTrackingView';
+import EnhancedTrackingView from './components/EnhancedTrackingView';
 import DriverProfileView from './components/DriverProfileView';
 import DriverPassengersView from './components/DriverPassengersView';
 import DriverNotificationsView from './components/DriverNotificationsView';
@@ -18,7 +19,6 @@ const DriverDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [activeView, setActiveView] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -35,25 +35,9 @@ const DriverDashboard = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const renderActiveView = () => {
-    switch (activeView) {
-      case 'overview':
-        return <DriverOverviewView />;
-      case 'passengers':
-        return <DriverPassengersView />;
-      case 'trips':
-        return <DriverTripsView />;
-      case 'tracking':
-        return <DriverTrackingView />;
-      case 'live-tracking':
-        return <DriverLiveTrackingView />;
-      case 'profile':
-        return <DriverProfileView />;
-      case 'notifications':
-        return <DriverNotificationsView />;
-      default:
-        return <DriverOverviewView />;
-    }
+  // Update sidebar to use URL-based navigation
+  const updateSidebarForRouting = () => {
+    // The sidebar will now use react-router-dom for navigation
   };
 
   return (
@@ -63,8 +47,6 @@ const DriverDashboard = () => {
       minHeight: '100vh',
     }}>
       <DriverSidebar
-        activeView={activeView}
-        setActiveView={setActiveView}
         user={user}
         logout={logout}
         navigate={navigate}
@@ -80,14 +62,22 @@ const DriverDashboard = () => {
         }}
       >
         <DriverHeader
-          activeView={activeView}
-          setActiveView={setActiveView}
           user={user}
           handleDrawerToggle={handleDrawerToggle}
           onRefresh={handleRefresh}
         />
+        {/* URL-based nested routes */}
         <React.Fragment key={refreshKey}>
-          {renderActiveView()}
+          <Routes>
+            <Route index element={<DriverOverviewView />} />
+            <Route path="passengers" element={<DriverPassengersView />} />
+            <Route path="trips" element={<DriverTripsView />} />
+            <Route path="tracking" element={<DriverTrackingView />} />
+            <Route path="enhanced-tracking" element={<EnhancedTrackingView />} />
+            <Route path="profile" element={<DriverProfileView />} />
+            <Route path="notifications" element={<DriverNotificationsView />} />
+            <Route path="*" element={<Navigate to="/driver" replace />} />
+          </Routes>
         </React.Fragment>
       </Box>
     </Box>

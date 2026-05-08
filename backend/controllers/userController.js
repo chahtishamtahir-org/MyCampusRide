@@ -95,6 +95,86 @@ const getUser = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Create new user (Admin only)
+// @route   POST /api/users
+// @access  Private/Admin
+const createUser = asyncHandler(async (req, res) => {
+  const { name, email, password, role, phone, studentId, licenseNumber, assignedBus, assignedRoute } = req.body;
+  const files = req.files || {};
+
+  // Validation
+  if (role === 'driver' && (!files.drivingLicense || files.drivingLicense.length === 0)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Driving license PDF is required for driver registration'
+    });
+  }
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({
+      success: false,
+      message: 'User already exists with this email'
+    });
+  }
+
+  // Check if student ID already exists for students
+  if (role === 'student' && studentId) {
+    const existingStudent = await User.findOne({ studentId });
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID already exists'
+      });
+    }
+  }
+
+  // Check if license number already exists for drivers
+  if (role === 'driver' && licenseNumber) {
+    const existingDriver = await User.findOne({ licenseNumber });
+    if (existingDriver) {
+      return res.status(400).json({
+        success: false,
+        message: 'License number already exists'
+      });
+    }
+  }
+
+  // Prepare user data
+  const userData = {
+    name,
+    email,
+    password,
+    role,
+    phone
+  };
+
+  if (files.profilePicture && files.profilePicture.length > 0) {
+    userData.profilePicture = 'uploads/profiles/' + files.profilePicture[0].filename;
+  }
+
+  // Add role-specific fields
+  if (role === 'student') {
+    userData.studentId = studentId;
+    userData.feeStatus = 'pending';
+    if (assignedBus) userData.assignedBus = assignedBus;
+    if (assignedRoute) userData.assignedRoute = assignedRoute;
+  } else if (role === 'driver') {
+    userData.licenseNumber = licenseNumber;
+    userData.drivingLicenseFile = 'uploads/licenses/' + files.drivingLicense[0].filename;
+  }
+
+  // Create user
+  const user = await User.create(userData);
+
+  res.status(201).json({
+    success: true,
+    message: 'User created successfully',
+    data: { user }
+  });
+});
+
 // @desc    Update user
 // @route   PUT /api/users/:id
 // @access  Private/Admin
@@ -502,6 +582,7 @@ const getDriverLicense = asyncHandler(async (req, res) => {
 module.exports = {
   getUsers,
   getUser,
+  createUser,
   updateUser,
   deleteUser,
   approveDriver,

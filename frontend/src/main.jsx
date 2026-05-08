@@ -7,7 +7,6 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
-import MapProvider from './components/MapProvider.jsx'
 import './index.css'
 
 const theme = createTheme({
@@ -76,9 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
-          <MapProvider>
-            <App />
-          </MapProvider>
+          <App />
         </AuthProvider>
         <ToastContainer
           position="top-right"

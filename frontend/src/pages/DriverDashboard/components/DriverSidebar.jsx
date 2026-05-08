@@ -12,8 +12,9 @@ import {
   Drawer, Avatar, Typography, IconButton, useTheme, useMediaQuery
 } from '@mui/material';
 import {
-  Dashboard, DirectionsBus, LocationOn, Person, Notifications, Logout, People, Map
+  Dashboard, DirectionsBus, LocationOn, Person, Notifications, Logout, People
 } from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import LogoutConfirmDialog from '../../../components/LogoutConfirmDialog';
 import {
@@ -28,18 +29,20 @@ import {
 const drawerWidth = SIDEBAR_STYLES.width;
 
 const menuItems = [
-  { id: 'overview', label: 'Overview', icon: <Dashboard /> },
-  { id: 'passengers', label: 'Passengers', icon: <People /> },
-  { id: 'trips', label: 'My Route', icon: <DirectionsBus /> },
-  { id: 'tracking', label: 'Tracking', icon: <LocationOn /> },
-  { id: 'live-tracking', label: 'Live Tracking', icon: <Map /> },
-  { id: 'notifications', label: 'Notifications', icon: <Notifications /> },
-  { id: 'profile', label: 'Profile', icon: <Person /> },
+  { path: '/driver', label: 'Overview', icon: <Dashboard /> },
+  { path: '/driver/passengers', label: 'Passengers', icon: <People /> },
+  { path: '/driver/trips', label: 'My Route', icon: <DirectionsBus /> },
+  { path: '/driver/tracking', label: 'Tracking', icon: <LocationOn /> },
+  { path: '/driver/enhanced-tracking', label: 'Enhanced Tracking', icon: <LocationOn /> },
+  { path: '/driver/notifications', label: 'Notifications', icon: <Notifications /> },
+  { path: '/driver/profile', label: 'Profile', icon: <Person /> },
 ];
 
-const DriverSidebar = ({ activeView, setActiveView, user, logout, navigate, mobileOpen, handleDrawerToggle }) => {
+const DriverSidebar = ({ user, logout, navigate, mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
+  const nav = useNavigate();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -56,8 +59,14 @@ const DriverSidebar = ({ activeView, setActiveView, user, logout, navigate, mobi
     setIsLoggingOut(false);
   };
 
-  const handleMenuItemClick = (itemId) => {
-    setActiveView(itemId);
+  // Determine active menu item from current URL
+  const isActive = (path) => {
+    if (path === '/driver') return location.pathname === '/driver';
+    return location.pathname.startsWith(path);
+  };
+
+  const handleMenuItemClick = (path) => {
+    nav(path);
     if (isMobile && handleDrawerToggle) {
       handleDrawerToggle();
     }
@@ -109,19 +118,19 @@ const DriverSidebar = ({ activeView, setActiveView, user, logout, navigate, mobi
         </Box>
       </Box>
 
-      <Box sx={{ flex: 1, overflow: 'auto', pb: 2 }}>
-        <List sx={{ px: 2, pt: 2 }}>
+      {/* Navigation Menu */}
+      <List sx={{ px: 2, pt: 2, flex: 1 }}>
         {menuItems.map((item) => {
-          const isActive = activeView === item.id;
+          const active = isActive(item.path);
           return (
-            <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
-                onClick={() => handleMenuItemClick(item.id)}
+                onClick={() => handleMenuItemClick(item.path)}
                 sx={{
                   borderRadius: BORDER_RADIUS.md,
                   py: 1.2,
                   px: 2,
-                  ...(isActive ? {
+                  ...(active ? {
                     background: BRAND_COLORS.primaryGradient,
                     color: BRAND_COLORS.white,
                     boxShadow: SHADOWS.buttonDefault,
@@ -148,12 +157,12 @@ const DriverSidebar = ({ activeView, setActiveView, user, logout, navigate, mobi
                 <ListItemText
                   primary={item.label}
                   primaryTypographyProps={{
-                    fontWeight: isActive ? TYPOGRAPHY.weights.bold : TYPOGRAPHY.weights.semibold,
+                    fontWeight: active ? TYPOGRAPHY.weights.bold : TYPOGRAPHY.weights.semibold,
                     fontSize: '0.95rem',
                   }}
                 />
                 {/* Active slide indicator */}
-                {isActive && (
+                {active && (
                   <Box sx={{
                     position: 'absolute',
                     left: 0,
@@ -170,8 +179,7 @@ const DriverSidebar = ({ activeView, setActiveView, user, logout, navigate, mobi
             </ListItem>
           );
         })}
-        </List>
-      </Box>
+      </List>
 
       {/* User Profile Section */}
       <Box sx={{

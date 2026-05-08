@@ -9,5 +9,4 @@ export const trackingService = {
   getActiveBusLocations: () => makeApiRequest(() => api.get('/api/tracking/active-buses')),
   getSimulatedLocations: (params) => makeApiRequest(() => api.get('/api/tracking/simulate', { params })),
   getMyTripStatus: () => makeApiRequest(() => api.get('/api/tracking/my-trip')),
-  getStudentTripStatus: () => makeApiRequest(() => api.get('/api/tracking/student-trip-status')),
 };

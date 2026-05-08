@@ -91,24 +91,21 @@ const BusesView = () => {
 
   const handleSubmit = async () => {
     try {
+      const submissionData = { ...formData };
+      
+      // Ensure unassigned values are sent as null
+      if (submissionData.driverId === '') submissionData.driverId = null;
+      if (submissionData.routeId === '') submissionData.routeId = null;
+
       if (dialogMode === 'add') {
-        await busService.createBus(formData);
+        await busService.createBus(submissionData);
         toast.success('Bus created successfully!');
       } else if (dialogMode === 'edit') {
-        const updateData = { ...formData };
-
-        if (updateData.driverId === '') {
-          updateData.driverId = null;
-        }
-        if (updateData.routeId === '') {
-          updateData.routeId = null;
+        if (!submissionData.status) {
+          submissionData.status = 'inactive';
         }
 
-        if (!updateData.status) {
-          updateData.status = 'inactive';
-        }
-
-        await busService.updateBus(selectedBus._id, updateData);
+        await busService.updateBus(selectedBus._id, submissionData);
         toast.success('Bus updated successfully!');
       }
 
@@ -278,6 +275,7 @@ const BusesView = () => {
               label="Model"
               value={formData.model || ''}
               onChange={(e) => handleFormChange('model', e.target.value)}
+              required
               helperText="Bus model (e.g., Mercedes-Benz, Toyota)"
             />
             <TextField
@@ -285,6 +283,7 @@ const BusesView = () => {
               type="number"
               value={formData.year || ''}
               onChange={(e) => handleFormChange('year', Number(e.target.value))}
+              required
               helperText="Manufacturing year"
             />
             <TextField

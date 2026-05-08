@@ -22,12 +22,12 @@ import OverviewView from './components/OverviewView';
 import UsersView from './components/UsersView';
 import BusesView from './components/BusesView';
 import RoutesView from './components/RoutesView';
-import AdminLiveTrackingView from './components/AdminLiveTrackingView';
 import FeeManagementView from './components/FeeManagementView';
 import BusAssignmentView from './components/BusAssignmentView';
 import DisplacedStudentsView from './components/DisplacedStudentsView';
 import NotificationsView from './components/NotificationsView';
 import AdminProfileView from './components/AdminProfileView';
+import LiveTrackingView from './components/LiveTrackingView';
 import { BACKGROUND_GRADIENTS } from '../../styles/brandStyles';
 
 const AdminDashboard = () => {
@@ -84,10 +84,10 @@ const AdminDashboard = () => {
         <React.Fragment key={refreshKey}>
           <Routes>
             <Route index element={<OverviewView />} />
+            <Route path="live-tracking" element={<LiveTrackingView />} />
             <Route path="users" element={<UsersView />} />
             <Route path="buses" element={<BusesView />} />
             <Route path="routes" element={<RoutesView />} />
-            <Route path="live-tracking" element={<AdminLiveTrackingView />} />
             <Route path="fees" element={<FeeManagementView />} />
             <Route path="bus-assignment" element={<BusAssignmentView />} />
             <Route path="displaced" element={<DisplacedStudentsView />} />

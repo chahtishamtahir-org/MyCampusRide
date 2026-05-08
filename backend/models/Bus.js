@@ -11,12 +11,12 @@ const busSchema = new mongoose.Schema({
   driverId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Driver assignment is required']
+    default: null
   },
   routeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Route',
-    required: [true, 'Route assignment is required']
+    default: null
   },
   capacity: {
     type: Number,
@@ -36,17 +36,6 @@ const busSchema = new mongoose.Schema({
     address: {
       type: String,
       default: 'Location not available'
-    },
-    speed: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    heading: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 360
     }
   },
   isActive: {

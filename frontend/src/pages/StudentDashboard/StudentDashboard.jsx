@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services';
@@ -15,8 +16,8 @@ import StudentHeader from './components/StudentHeader';
 import StudentOverviewView from './components/StudentOverviewView';
 import StudentScheduleView from './components/StudentScheduleView';
 import StudentTrackingView from './components/StudentTrackingView';
-import StudentLiveTrackingView from './components/StudentLiveTrackingView';
 import StudentProfileView from './components/StudentProfileView';
+import LiveTrackingView from './components/LiveTrackingView';
 import VirtualTransportCard from './components/VirtualTransportCard';
 import NotificationPanel from '../../components/NotificationPanel';
 import { BACKGROUND_GRADIENTS } from '../../styles/brandStyles';
@@ -26,8 +27,7 @@ const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // State for view management and student data
-  const [activeView, setActiveView] = useState('overview');
+  // State for student data
   const [assignedBus, setAssignedBus] = useState(null);
   const [assignedRoute, setAssignedRoute] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -80,33 +80,10 @@ const StudentDashboard = () => {
     return null;
   }
 
-  const renderActiveView = () => {
-    switch (activeView) {
-      case 'overview':
-        return <StudentOverviewView />;
-      case 'schedule':
-        return <StudentScheduleView />;
-      case 'tracking':
-        return <StudentTrackingView />;
-      case 'live-tracking':
-        return <StudentLiveTrackingView />;
-      case 'profile':
-        return <StudentProfileView />;
-      case 'transport-card':
-        return (
-          <Box display="flex" justifyContent="center" p={4}>
-            <VirtualTransportCard user={user} assignedBus={assignedBus} assignedRoute={assignedRoute} />
-          </Box>
-        );
-      case 'notifications':
-        return (
-          <Box p={3}>
-            <NotificationPanel maxHeight={"calc(100vh - 200px)"} />
-          </Box>
-        );
-      default:
-        return <StudentOverviewView />;
-    }
+  // Update sidebar to use URL-based navigation
+  const updateSidebarForRouting = () => {
+    // The sidebar will now use react-router-dom for navigation
+    // instead of state-based navigation
   };
 
   return (
@@ -119,8 +96,6 @@ const StudentDashboard = () => {
     }}>
       {/* Left Sidebar - Navigation with brand styling */}
       <StudentSidebar
-        activeView={activeView}
-        setActiveView={setActiveView}
         user={user}
         logout={logout}
         navigate={navigate}
@@ -136,14 +111,30 @@ const StudentDashboard = () => {
       }}>
         {/* Top Header with user info */}
         <StudentHeader
-          activeView={activeView}
           handleDrawerToggle={handleDrawerToggle}
           onRefresh={handleRefresh}
         />
 
-        {/* Dynamic view content */}
+        {/* URL-based nested routes */}
         <React.Fragment key={refreshKey}>
-          {renderActiveView()}
+          <Routes>
+            <Route index element={<StudentOverviewView />} />
+            <Route path="schedule" element={<StudentScheduleView />} />
+            <Route path="tracking" element={<StudentTrackingView />} />
+            <Route path="live-tracking" element={<LiveTrackingView />} />
+            <Route path="profile" element={<StudentProfileView />} />
+            <Route path="transport-card" element={
+              <Box display="flex" justifyContent="center" p={4}>
+                <VirtualTransportCard user={user} assignedBus={assignedBus} assignedRoute={assignedRoute} />
+              </Box>
+            } />
+            <Route path="notifications" element={
+              <Box p={3}>
+                <NotificationPanel maxHeight={"calc(100vh - 200px)"} />
+              </Box>
+            } />
+            <Route path="*" element={<Navigate to="/student" replace />} />
+          </Routes>
         </React.Fragment>
       </Box>
     </Box>

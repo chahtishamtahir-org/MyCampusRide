@@ -17,14 +17,4 @@ export const busService = {
     const user = meResponse.data?.data || meResponse.data;
     return makeApiRequest(() => api.get(`/api/buses/driver/${user._id}`));
   },
-  // Get student's assigned bus
-  getStudentBus: async () => {
-    const meResponse = await makeApiRequest(() => api.get('/api/auth/me'));
-    const user = meResponse.data?.data || meResponse.data;
-    if (user?.assignedBus) {
-      const busId = typeof user.assignedBus === 'object' ? user.assignedBus._id : user.assignedBus;
-      return makeApiRequest(() => api.get(`/api/buses/${busId}`));
-    }
-    return { data: { success: false, data: null } };
-  },
 };

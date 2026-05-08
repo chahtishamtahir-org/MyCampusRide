@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container, Grid, Card, CardContent, Typography, Box, TextField,
-  Button, Avatar, Chip, CircularProgress, Tab, Tabs
+  Button, Avatar, Chip, CircularProgress, Tab, Tabs, IconButton
 } from '@mui/material';
-import { Person as PersonIcon, Email, Phone, Lock as LockIcon } from '@mui/icons-material';
+import { Person as PersonIcon, Email, Phone, Lock as LockIcon, PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
 import { authService } from '../../../services';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../context/AuthContext';
 
 const AdminProfileView = () => {
+  const { updateUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
   const [activeTab, setActiveTab] = useState(0);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     loadUserData();
@@ -47,6 +51,14 @@ const AdminProfileView = () => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setProfilePicture(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -75,11 +87,19 @@ const AdminProfileView = () => {
         return;
       }
 
-      await authService.updateProfile({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone
-      });
+      const updateData = new FormData();
+      updateData.append('name', formData.name);
+      updateData.append('email', formData.email);
+      updateData.append('phone', formData.phone);
+      if (profilePicture) {
+        updateData.append('profilePicture', profilePicture);
+      }
+
+      const response = await authService.updateProfile(updateData);
+      const updatedUser = response.data?.data || response.data;
+
+      // Update global context so sidebar reflects changes
+      updateUser(updatedUser);
 
       toast.success('Your profile has been updated successfully. Changes are now active.');
 
@@ -126,12 +146,28 @@ const AdminProfileView = () => {
           {activeTab === 0 && (
             <>
               <Box textAlign="center" mb={4}>
-                <Avatar
-                  src={user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
-                  sx={{ width: 120, height: 120, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '2rem' }}
-                >
-                  {user?.name?.charAt(0).toUpperCase() || 'A'}
-                </Avatar>
+                <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Avatar
+                    src={previewUrl || (user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined)}
+                    sx={{ width: 120, height: 120, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '2rem' }}
+                  >
+                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                  </Avatar>
+                  <IconButton
+                    component="label"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 16,
+                      right: 0,
+                      bgcolor: 'white',
+                      boxShadow: 2,
+                      '&:hover': { bgcolor: '#f5f5f5' }
+                    }}
+                  >
+                    <PhotoCameraIcon color="primary" fontSize="small" />
+                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                  </IconButton>
+                </Box>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   {user?.name || 'Admin'}
                 </Typography>

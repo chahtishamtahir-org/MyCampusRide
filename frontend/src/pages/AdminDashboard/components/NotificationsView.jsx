@@ -109,6 +109,24 @@ const NotificationsView = () => {
                         primary={
                           <Box display="flex" alignItems="center" gap={2}>
                             <Typography sx={{ fontWeight: 600 }}>{notification.title}</Typography>
+                            {notification.senderRole && (
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  bgcolor: 'grey.100', 
+                                  px: 1, 
+                                  py: 0.2, 
+                                  borderRadius: 1,
+                                  fontSize: '0.65rem',
+                                  textTransform: 'uppercase',
+                                  fontWeight: 700,
+                                  color: 'text.secondary'
+                                }}
+                              >
+                                {notification.senderRole}
+                              </Typography>
+                            )}
+
                             <span style={{
                               padding: '2px 8px',
                               borderRadius: '12px',

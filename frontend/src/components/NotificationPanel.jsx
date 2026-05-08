@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import { notificationService } from '../services';
 
-const NotificationPanel = ({ maxHeight = 400 }) => {
+const NotificationPanel = ({ maxHeight = 400, onCountChange }) => {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -45,7 +45,8 @@ const NotificationPanel = ({ maxHeight = 400 }) => {
     // Update unread count when notifications change
     const count = notifications.filter(n => !n.isRead).length;
     setUnreadCount(count);
-  }, [notifications]);
+    if (onCountChange) onCountChange(count);
+  }, [notifications, onCountChange]);
 
   const loadNotifications = async () => {
     try {
@@ -136,14 +137,22 @@ const NotificationPanel = ({ maxHeight = 400 }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
 
-    if (diffInHours < 1) {
+    if (diffInMinutes < 1) {
       return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
+      return `${diffInHours}h ago`;
     } else {
-      return date.toLocaleDateString();
+      return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   };
 
@@ -224,15 +233,36 @@ const NotificationPanel = ({ maxHeight = 400 }) => {
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: notification.isRead ? 400 : 600,
-                          flexGrow: 1,
-                        }}
-                      >
-                        {notification.title}
-                      </Typography>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: notification.isRead ? 400 : 600,
+                            flexGrow: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          {notification.title}
+                          {notification.senderRole && (
+                            <Typography 
+                              component="span" 
+                              variant="caption" 
+                              sx={{ 
+                                bgcolor: 'rgba(0,0,0,0.05)', 
+                                px: 1, 
+                                py: 0.2, 
+                                borderRadius: 1,
+                                fontSize: '0.65rem',
+                                textTransform: 'uppercase',
+                                color: 'text.secondary',
+                                fontWeight: 700
+                              }}
+                            >
+                              {notification.senderRole}
+                            </Typography>
+                          )}
+                        </Typography>
                       <Chip
                         label={notification.priority}
                         color={getPriorityColor(notification.priority)}

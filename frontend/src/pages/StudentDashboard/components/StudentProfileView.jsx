@@ -13,15 +13,16 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container, Card, CardContent, Typography, Box, Avatar, Grid,
-  TextField, Button, Tab, Tabs, CircularProgress
+  TextField, Button, Tab, Tabs, CircularProgress, IconButton
 } from '@mui/material';
 import {
-  Person as PersonIcon, Email, Phone, Badge as BadgeIcon, CreditCard, Lock as LockIcon
+  Person as PersonIcon, Email, Phone, Badge as BadgeIcon, CreditCard, Lock as LockIcon, PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
 import { authService } from '../../../services';
 import VirtualTransportCard from './VirtualTransportCard';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../context/AuthContext';
 import {
   BRAND_COLORS,
   CARD_STYLES,
@@ -31,6 +32,7 @@ import {
 } from '../../../styles/brandStyles';
 
 const StudentProfileView = () => {
+  const { updateUser } = useAuth();
   const [user, setUser] = useState(null);
   const [assignedBus, setAssignedBus] = useState(null);
   const [assignedRoute, setAssignedRoute] = useState(null);
@@ -38,6 +40,8 @@ const StudentProfileView = () => {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
   const [activeTab, setActiveTab] = useState(0);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   // Load user data on component mount
   useEffect(() => {
@@ -89,6 +93,14 @@ const StudentProfileView = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setProfilePicture(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   /**
    * Save profile changes to backend
    * Only email and phone can be updated by student
@@ -97,15 +109,21 @@ const StudentProfileView = () => {
     try {
       setSaving(true);
 
-      const updateData = {
-        email: formData.email,
-        phone: formData.phone
-      };
+      const updateData = new FormData();
+      updateData.append('email', formData.email);
+      updateData.append('phone', formData.phone);
+      if (profilePicture) {
+        updateData.append('profilePicture', profilePicture);
+      }
 
-      await authService.updateProfile(updateData);
+      const response = await authService.updateProfile(updateData);
+      const updatedUser = response.data?.data || response.data;
+      
+      updateUser(updatedUser);
+      
       toast.success('Your profile has been updated successfully. Changes are now active.');
 
-      setUser(prev => ({ ...prev, ...updateData }));
+      setUser(updatedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
       const errorMessage = error.response?.data?.message || 'Failed to update profile. Please try again.';
@@ -189,27 +207,41 @@ const StudentProfileView = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Box textAlign="center" mb={3}>
-                  {/* Avatar with gradient border */}
-                  <Box sx={{
-                    p: 0.5,
-                    borderRadius: '50%',
-                    background: BRAND_COLORS.primaryGradient,
-                    display: 'inline-flex',
-                    mb: 2,
-                  }}>
-                    <Avatar
-                      src={user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+                  <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                    <Box sx={{
+                      p: 0.5,
+                      borderRadius: '50%',
+                      background: BRAND_COLORS.primaryGradient,
+                      display: 'inline-flex',
+                    }}>
+                      <Avatar
+                        src={previewUrl || (user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined)}
+                        sx={{
+                          width: 120,
+                          height: 120,
+                          bgcolor: BRAND_COLORS.white,
+                          color: BRAND_COLORS.skyBlue,
+                          fontSize: '2.5rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {user?.name?.charAt(0).toUpperCase() || 'S'}
+                      </Avatar>
+                    </Box>
+                    <IconButton
+                      component="label"
                       sx={{
-                        width: 120,
-                        height: 120,
+                        position: 'absolute',
+                        bottom: 4,
+                        right: 4,
                         bgcolor: BRAND_COLORS.white,
-                        color: BRAND_COLORS.skyBlue,
-                        fontSize: '2.5rem',
-                        fontWeight: 700,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                        '&:hover': { bgcolor: BRAND_COLORS.slate100 }
                       }}
                     >
-                      {user?.name?.charAt(0).toUpperCase() || 'S'}
-                    </Avatar>
+                      <PhotoCameraIcon sx={{ color: BRAND_COLORS.skyBlue, fontSize: 20 }} />
+                      <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                    </IconButton>
                   </Box>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: BRAND_COLORS.slate900 }}>
                     {user?.name || 'Student'}

@@ -47,13 +47,8 @@ const register = asyncHandler(async (req, res) => {
   // FILE VALIDATION
   const files = req.files || {};
 
-  // 1. Profile Picture is mandatory for EVERYONE
-  if (!files.profilePicture || files.profilePicture.length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Profile picture is required'
-    });
-  }
+  // 1. Profile Picture is now OPTIONAL
+  // Removed mandatory check
 
   // 2. Driving License is mandatory for DRIVERS
   if (role === 'driver' && (!files.drivingLicense || files.drivingLicense.length === 0)) {
@@ -125,9 +120,12 @@ const register = asyncHandler(async (req, res) => {
     email,
     password,
     role,
-    phone,
-    profilePicture: 'uploads/profiles/' + files.profilePicture[0].filename
+    phone
   };
+
+  if (files.profilePicture && files.profilePicture.length > 0) {
+    userData.profilePicture = 'uploads/profiles/' + files.profilePicture[0].filename;
+  }
 
   // Add role-specific fields
   if (role === 'student') {
@@ -298,6 +296,10 @@ const updateProfile = asyncHandler(async (req, res) => {
 
   if (phone !== undefined) {
     updateData.phone = phone;
+  }
+
+  if (req.file) {
+    updateData.profilePicture = 'uploads/profiles/' + req.file.filename;
   }
 
   const user = await User.findByIdAndUpdate(

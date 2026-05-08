@@ -18,7 +18,8 @@ import {
 } from '@mui/material';
 import { Refresh, Notifications, Menu as MenuIcon } from '@mui/icons-material';
 import NotificationPanel from '../../../components/NotificationPanel';
-import { notificationService } from '../../../services';
+import { notificationService, socketService } from '../../../services';
+
 import {
   BRAND_COLORS,
   BUTTON_STYLES,
@@ -76,7 +77,7 @@ const StudentHeader = ({ activeView, handleDrawerToggle, onRefresh }) => {
     try {
       const response = await notificationService.getNotificationStats();
       const stats = response.data;
-      setUnreadCount(stats.unreadCount || 0);
+      setUnreadCount(stats.data?.unread || 0);
     } catch (error) {
       console.error('Error loading notification stats:', error);
       try {
@@ -91,9 +92,21 @@ const StudentHeader = ({ activeView, handleDrawerToggle, onRefresh }) => {
     }
   };
 
-  // Load unread count on component mount
+  // Load unread count on component mount and listen for real-time updates
   useEffect(() => {
     loadUnreadCount();
+
+    // Listen for new notifications in real-time
+    const handleNewNotification = (notification) => {
+      console.log('New student notification received:', notification);
+      setUnreadCount(prev => prev + 1);
+    };
+
+    socketService.on('new-notification', handleNewNotification);
+
+    return () => {
+      socketService.off('new-notification', handleNewNotification);
+    };
   }, []);
 
   return (
@@ -219,7 +232,10 @@ const StudentHeader = ({ activeView, handleDrawerToggle, onRefresh }) => {
         }}
       >
         <div style={{ width: 350 }}>
-          <NotificationPanel maxHeight={400} />
+          <NotificationPanel 
+            maxHeight={400} 
+            onCountChange={setUnreadCount}
+          />
         </div>
       </Popover>
     </>

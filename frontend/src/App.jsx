@@ -90,7 +90,7 @@ function App() {
             }
           />
           <Route
-            path="/driver"
+            path="/driver/*"
             element={
               <ProtectedRoute allowedRoles={['driver']}>
                 <DriverDashboard />
@@ -98,7 +98,7 @@ function App() {
             }
           />
           <Route
-            path="/student"
+            path="/student/*"
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <StudentDashboard />

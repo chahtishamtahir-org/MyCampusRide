@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authService } from '../services';
+import { authService, socketService } from '../services';
+
 import { toast } from 'react-toastify';
 
 // Initial state
@@ -131,6 +132,21 @@ export const AuthProvider = ({ children }) => {
     loadUserFromStorage();
   }, []);
 
+  // Handle Socket.IO connection based on authentication state
+  useEffect(() => {
+    if (state.isAuthenticated && state.user) {
+      console.log(`🔌 Initializing socket connection for ${state.user.name} (${state.user.role})`);
+      socketService.connect(state.user._id, state.user.role);
+    } else if (!state.isAuthenticated && !state.isLoading) {
+      socketService.disconnect();
+    }
+
+    return () => {
+      // Don't disconnect on every re-render, only when auth state actually changes to false
+      // or component unmounts (though AuthProvider usually persists)
+    };
+  }, [state.isAuthenticated, state.user, state.isLoading]);
+
   // Login function
   const login = async (credentials) => {
     try {
@@ -238,6 +254,17 @@ export const AuthProvider = ({ children }) => {
       type: AUTH_ACTIONS.UPDATE_USER,
       payload: userData,
     });
+    
+    // Also update localStorage
+    const storedUserStr = localStorage.getItem('user');
+    if (storedUserStr) {
+      try {
+        const storedUser = JSON.parse(storedUserStr);
+        localStorage.setItem('user', JSON.stringify({ ...storedUser, ...userData }));
+      } catch (e) {
+        console.error('Failed to parse stored user for update', e);
+      }
+    }
   };
 
   // Clear error function

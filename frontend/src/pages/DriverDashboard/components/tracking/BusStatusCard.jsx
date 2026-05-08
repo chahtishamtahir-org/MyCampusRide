@@ -55,7 +55,7 @@ const BusStatusCard = ({ busInfo, locationData }) => {
                             {busInfo?.busNumber || 'N/A'}
                         </Typography>
                         <Typography variant="body2" sx={{ color: BRAND_COLORS.slate600 }}>
-                            Capacity: {busInfo?.capacity || 0} seats
+                            Capacity: {busInfo?.currentCapacity || 0}/{busInfo?.capacity || 0}
                         </Typography>
                     </Box>
                 </Box>

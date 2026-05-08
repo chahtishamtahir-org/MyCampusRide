@@ -23,7 +23,7 @@ router.post('/logout', logout);
 
 // Protected routes
 router.get('/me', authMiddleware, getMe);
-router.put('/profile', authMiddleware, updateProfile);
+router.put('/profile', authMiddleware, upload.single('profilePicture'), updateProfile);
 router.put('/change-password', authMiddleware, changePassword);
 router.put('/select-route', authMiddleware, selectRoute);
 

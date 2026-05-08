@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -17,152 +17,39 @@ import {
   Refresh,
   Warning,
 } from '@mui/icons-material';
-import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
-import { useMap } from './MapProvider';
 import { trackingAPI } from '../api/api';
 
-const CAMPUS_CENTER = { lat: 30.03204, lng: 72.31631 };
-
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%'
-};
-
-const mapOptions = {
-  gestureHandling: 'cooperative',
-  zoomControl: true,
-  mapTypeControl: false,
-  streetViewControl: false,
-  fullscreenControl: true,
-  styles: [
-    {
-      featureType: 'poi',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }]
-    }
-  ]
-};
-
-const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = true }) => {
+const BusMap = ({ routeId, height = 400 }) => {
   const theme = useTheme();
-  const { isLoaded, hasApiKey } = useMap();
   const [busLocations, setBusLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedBus, setSelectedBus] = useState(null);
-  const [map, setMap] = useState(null);
+  const [hasGoogleMaps, setHasGoogleMaps] = useState(false);
 
   useEffect(() => {
-    if (externalBuses) {
-      setBusLocations(externalBuses);
-    } else {
-      loadBusLocations();
-    }
-  }, [routeId, externalBuses]);
+    checkGoogleMapsAvailability();
+    loadBusLocations();
+  }, [routeId]);
+
+  const checkGoogleMapsAvailability = () => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    setHasGoogleMaps(!!apiKey && apiKey.trim() !== '');
+  };
 
   const loadBusLocations = async () => {
     try {
       setIsLoading(true);
       setError(null);
+
       const params = routeId ? { routeId } : {};
       const response = await trackingAPI.getSimulatedLocations(params);
-      setBusLocations(response.data.data || []);
+      setBusLocations(response.data.data);
     } catch (err) {
       setError('Failed to load bus locations');
       console.error('Bus map error:', err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const onMapLoad = useCallback((mapInstance) => {
-    setMap(mapInstance);
-  }, []);
-
-  const isValidCoord = (lat, lng) => {
-    return typeof lat === 'number' && typeof lng === 'number' &&
-      isFinite(lat) && isFinite(lng) &&
-      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-  };
-
-  const getBusIcon = (bus) => {
-    const color = bus.isOnTrip ? '#22c55e' : '#3B82F6';
-    return {
-      path: 'M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm0 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 10c-1.67 0-3.14-.85-4-2.15.02-1.32 2.67-2.05 4-2.05s3.98.73 4 2.05c-.86 1.3-2.33 2.15-4 2.15z',
-      fillColor: color,
-      fillOpacity: 1,
-      strokeWeight: 2,
-      strokeColor: '#ffffff',
-      scale: 1.5,
-      anchor: { x: 12, y: 22 }
-    };
-  };
-
-  const renderGoogleMap = () => {
-    const validBuses = busLocations.filter(
-      bus => bus.location && isValidCoord(bus.location.latitude, bus.location.longitude)
-    );
-
-    const center = validBuses.length > 0
-      ? { lat: validBuses[0].location.latitude, lng: validBuses[0].location.longitude }
-      : CAMPUS_CENTER;
-
-    return (
-      <Box sx={{ height, borderRadius: 2, overflow: 'hidden' }}>
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={14}
-          options={mapOptions}
-          onLoad={onMapLoad}
-        >
-          {validBuses.map((bus) => (
-            <Marker
-              key={bus.busId}
-              position={{
-                lat: bus.location.latitude,
-                lng: bus.location.longitude
-              }}
-              icon={getBusIcon(bus)}
-              onClick={() => setSelectedBus(bus)}
-            />
-          ))}
-
-          {selectedBus && selectedBus.location && isValidCoord(selectedBus.location.latitude, selectedBus.location.longitude) && (
-            <InfoWindow
-              position={{
-                lat: selectedBus.location.latitude,
-                lng: selectedBus.location.longitude
-              }}
-              onCloseClick={() => setSelectedBus(null)}
-            >
-              <Box sx={{ p: 1, minWidth: 150 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  {selectedBus.busNumber}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Driver: {selectedBus.driver?.name || 'N/A'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Route: {selectedBus.route?.routeName || 'N/A'}
-                </Typography>
-                {selectedBus.location?.speed > 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Speed: {Math.round(selectedBus.location.speed)} km/h
-                  </Typography>
-                )}
-                <Chip
-                  label={selectedBus.isOnTrip ? 'On Trip' : 'Available'}
-                  color={selectedBus.isOnTrip ? 'success' : 'default'}
-                  size="small"
-                  sx={{ mt: 1 }}
-                />
-              </Box>
-            </InfoWindow>
-          )}
-        </GoogleMap>
-      </Box>
-    );
   };
 
   const renderSimulatedMap = () => (
@@ -179,6 +66,7 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
         overflow: 'hidden',
       }}
     >
+      {/* Simulation Mode Banner */}
       <Alert
         severity="info"
         icon={<Warning />}
@@ -190,9 +78,10 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
           zIndex: 1,
         }}
       >
-        Google Maps API key not configured. Showing simulation mode.
+        Live tracking is currently under maintenance. Simulation mode active.
       </Alert>
 
+      {/* Bus Icons on Simulated Map */}
       {busLocations.map((bus, index) => (
         <Box
           key={bus.busId}
@@ -230,6 +119,7 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
         </Box>
       ))}
 
+      {/* Map Grid Pattern */}
       <Box
         sx={{
           position: 'absolute',
@@ -246,6 +136,7 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
         }}
       />
 
+      {/* Center Message */}
       <Box sx={{ textAlign: 'center', zIndex: 2 }}>
         <LocationOn sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
         <Typography variant="h6" color="grey.600" sx={{ fontWeight: 600 }}>
@@ -258,22 +149,32 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
     </Box>
   );
 
-  if (!isLoaded) {
-    return (
-      <Paper elevation={2} sx={{ p: 2 }}>
-        <Box
-          sx={{
-            height,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </Paper>
-    );
-  }
+  const renderGoogleMaps = () => (
+    <Box
+      sx={{
+        height,
+        borderRadius: 2,
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      {/* Placeholder for Google Maps integration */}
+      <Box
+        sx={{
+          height: '100%',
+          bgcolor: 'primary.light',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+        }}
+      >
+        <Typography variant="h6">
+          Google Maps Integration
+        </Typography>
+      </Box>
+    </Box>
+  );
 
   return (
     <Paper elevation={2} sx={{ p: 2 }}>
@@ -281,17 +182,15 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Bus Tracking Map
         </Typography>
-        {showRefresh && !externalBuses && (
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Refresh />}
-            onClick={loadBusLocations}
-            disabled={isLoading}
-          >
-            Refresh
-          </Button>
-        )}
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<Refresh />}
+          onClick={loadBusLocations}
+          disabled={isLoading}
+        >
+          Refresh
+        </Button>
       </Box>
 
       {error && (
@@ -313,8 +212,9 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
         </Box>
       ) : (
         <>
-          {hasApiKey ? renderGoogleMap() : renderSimulatedMap()}
-
+          {hasGoogleMaps ? renderGoogleMaps() : renderSimulatedMap()}
+          
+          {/* Bus Information Cards */}
           {busLocations.length > 0 && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
@@ -370,3 +270,7 @@ const BusMap = ({ routeId, height = 400, buses: externalBuses, showRefresh = tru
 };
 
 export default BusMap;
+
+
+
+

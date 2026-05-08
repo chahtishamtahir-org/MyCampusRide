@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Typography, Button, Grid, Card, CardContent, Chip, Stack,
-  IconButton, useMediaQuery, useTheme
+  Box, Container, Typography, Button, Grid, Card, CardContent, Chip, Stack
 } from '@mui/material';
 import {
   DirectionsBus, Person, Security, Login, HowToReg, School, LocalShipping,
-  NotificationsActive, Map, Schedule, CheckCircle, Speed, Groups, Menu as MenuIcon,
-  Close as CloseIcon
+  NotificationsActive, Map, Schedule, CheckCircle, Speed, Groups
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../components/Footer';
@@ -14,9 +12,6 @@ import Footer from '../../components/Footer';
 const LandingPage = () => {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -34,11 +29,11 @@ const LandingPage = () => {
           left: 0,
           right: 0,
           zIndex: 1000,
-          bgcolor: scrollY > 50 || mobileMenuOpen ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
-          backdropFilter: scrollY > 50 || mobileMenuOpen ? 'blur(10px)' : 'none',
-          borderBottom: scrollY > 50 || mobileMenuOpen ? '1px solid rgba(0,0,0,0.08)' : 'none',
+          bgcolor: scrollY > 50 ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+          backdropFilter: scrollY > 50 ? 'blur(10px)' : 'none',
+          borderBottom: scrollY > 50 ? '1px solid rgba(0,0,0,0.08)' : 'none',
           transition: 'all 0.3s ease',
-          py: { xs: 1.5, sm: 2 },
+          py: 2,
         }}
       >
         <Container maxWidth="lg">
@@ -47,7 +42,6 @@ const LandingPage = () => {
               variant="h5"
               sx={{
                 fontWeight: 800,
-                fontSize: { xs: '1.25rem', sm: '1.5rem' },
                 background: 'linear-gradient(135deg, #0EA5E9 0%, #14B8A6 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -56,15 +50,13 @@ const LandingPage = () => {
             >
               MyCampusRide
             </Typography>
-
-            {/* Desktop Nav Buttons */}
-            <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
+            <Box display="flex" gap={2}>
               <Button
                 variant="text"
                 startIcon={<Login />}
                 onClick={() => navigate('/login')}
                 sx={{
-                  color: scrollY > 50 ? '#1E293B' : '#1E293B',
+                  color: '#1E293B',
                   fontWeight: 600,
                   '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.08)' },
                 }}
@@ -89,58 +81,7 @@ const LandingPage = () => {
                 Get Started
               </Button>
             </Box>
-
-            {/* Mobile Hamburger */}
-            <IconButton
-              sx={{ display: { xs: 'flex', sm: 'none' }, color: '#1E293B' }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-            </IconButton>
           </Box>
-
-          {/* Mobile Menu Dropdown */}
-          {mobileMenuOpen && (
-            <Box
-              sx={{
-                display: { xs: 'flex', sm: 'none' },
-                flexDirection: 'column',
-                gap: 1,
-                pt: 2,
-                pb: 1,
-              }}
-            >
-              <Button
-                fullWidth
-                variant="text"
-                startIcon={<Login />}
-                onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                sx={{
-                  color: '#1E293B',
-                  fontWeight: 600,
-                  justifyContent: 'flex-start',
-                  '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.08)' },
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<HowToReg />}
-                onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
-                sx={{
-                  background: 'linear-gradient(135deg, #0EA5E9 0%, #14B8A6 100%)',
-                  fontWeight: 600,
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #0284C7 0%, #0F766E 100%)',
-                  },
-                }}
-              >
-                Get Started
-              </Button>
-            </Box>
-          )}
         </Container>
       </Box>
 
@@ -148,8 +89,8 @@ const LandingPage = () => {
       <Box
         sx={{
           position: 'relative',
-          pt: { xs: 12, md: 14 },
-          pb: { xs: 6, md: 8 },
+          pt: { xs: 16, md: 20 },
+          pb: { xs: 12, md: 16 },
           background: 'linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 100%)',
           overflow: 'hidden',
         }}
@@ -292,7 +233,7 @@ const LandingPage = () => {
               >
                 <Box
                   sx={{
-                    p: { xs: 3, md: 6 },
+                    p: 6,
                     background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%)',
                     borderRadius: '24px',
                     backdropFilter: 'blur(10px)',
@@ -302,7 +243,7 @@ const LandingPage = () => {
                 >
                   <DirectionsBus
                     sx={{
-                      fontSize: { xs: 100, sm: 140, md: 200 },
+                      fontSize: { xs: 200, md: 280 },
                       color: '#0EA5E9',
                       opacity: 0.9,
                       display: 'block',
@@ -347,9 +288,9 @@ const LandingPage = () => {
       </Box>
 
       {/* Stats Section */}
-      <Box sx={{ py: { xs: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
+      <Box sx={{ py: 8, bgcolor: '#FFFFFF' }}>
         <Container maxWidth="lg">
-          <Grid container spacing={{ xs: 2, md: 4 }}>
+          <Grid container spacing={4}>
             {[
               { icon: Groups, value: '1000+', label: 'Active Users' },
               { icon: DirectionsBus, value: '50+', label: 'Buses Tracked' },
@@ -365,34 +306,26 @@ const LandingPage = () => {
                 >
                   <Box
                     sx={{
-                      width: { xs: 44, md: 64 },
-                      height: { xs: 44, md: 64 },
-                      borderRadius: { xs: '12px', md: '16px' },
+                      width: 64,
+                      height: 64,
+                      borderRadius: '16px',
                       background: 'linear-gradient(135deg, #0EA5E9 0%, #14B8A6 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       mx: 'auto',
-                      mb: { xs: 1, md: 2 },
+                      mb: 2,
                     }}
                   >
-                    <stat.icon sx={{ fontSize: { xs: 22, md: 32 }, color: 'white' }} />
+                    <stat.icon sx={{ fontSize: 32, color: 'white' }} />
                   </Box>
                   <Typography
-                    sx={{
-                      fontWeight: 800,
-                      color: '#0F172A',
-                      mb: 0.5,
-                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' },
-                    }}
+                    variant="h3"
+                    sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}
                   >
                     {stat.value}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
-                  >
+                  <Typography variant="body1" color="text.secondary">
                     {stat.label}
                   </Typography>
                 </Box>
@@ -403,9 +336,9 @@ const LandingPage = () => {
       </Box>
 
       {/* User Types Section */}
-      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: '#F8FAFC' }}>
+      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#F8FAFC' }}>
         <Container maxWidth="lg">
-          <Box textAlign="center" mb={{ xs: 4, md: 6 }}>
+          <Box textAlign="center" mb={8}>
             <Typography
               variant="h2"
               sx={{
@@ -592,9 +525,9 @@ const LandingPage = () => {
       </Box>
 
       {/* Features Section */}
-      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: '#FFFFFF' }}>
+      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#FFFFFF' }}>
         <Container maxWidth="lg">
-          <Box textAlign="center" mb={{ xs: 4, md: 6 }}>
+          <Box textAlign="center" mb={8}>
             <Typography
               variant="h2"
               sx={{
@@ -643,7 +576,7 @@ const LandingPage = () => {
                 title: 'Secure Access',
                 description: 'Role-based permissions ensuring data security and user privacy.',
               },
-            ].slice(0, isMobile ? 4 : 6).map((feature, index) => (
+            ].map((feature, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Box
                   sx={{

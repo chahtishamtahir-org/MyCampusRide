@@ -6,14 +6,30 @@
 import React from 'react';
 import {
     Card, CardContent, Typography, Box, List, ListItem,
-    ListItemAvatar, ListItemText, Avatar, Divider
+    ListItemAvatar, ListItemText, Avatar, Divider, Chip
 } from '@mui/material';
-import { LocationOn, Map } from '@mui/icons-material';
+import { LocationOn, Map, GpsFixed } from '@mui/icons-material';
 import {
     BRAND_COLORS, CARD_STYLES, BORDER_RADIUS, SHADOWS, TYPOGRAPHY
 } from '../../../../styles/brandStyles';
 
 const LocationCard = ({ locationData }) => {
+    // Determine if we actually have a real GPS fix
+    const hasLocation = locationData &&
+        locationData.latitude !== 0 &&
+        locationData.longitude !== 0 &&
+        locationData.latitude != null;
+
+    const latDisplay = hasLocation
+        ? locationData.latitude.toFixed(6)
+        : 'Acquiring…';
+    const lngDisplay = hasLocation
+        ? locationData.longitude.toFixed(6)
+        : 'Acquiring…';
+    const addressDisplay = hasLocation
+        ? (locationData.address || 'Address not available')
+        : 'Waiting for GPS signal';
+
     return (
         <Card sx={{
             ...CARD_STYLES.standard,
@@ -21,16 +37,26 @@ const LocationCard = ({ locationData }) => {
             boxShadow: SHADOWS.sm,
         }}>
             <CardContent>
-                <Typography variant="subtitle2" sx={{
-                    color: BRAND_COLORS.slate500,
-                    fontWeight: TYPOGRAPHY.weights.semibold,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    fontSize: '0.75rem',
-                    mb: 1.5,
-                }}>
-                    Current Location
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                    <Typography variant="subtitle2" sx={{
+                        color: BRAND_COLORS.slate500,
+                        fontWeight: TYPOGRAPHY.weights.semibold,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        fontSize: '0.75rem',
+                    }}>
+                        Current Location
+                    </Typography>
+                    {hasLocation && (
+                        <Chip
+                            icon={<GpsFixed sx={{ fontSize: 14 }} />}
+                            label={locationData.accuracy ? `±${locationData.accuracy}m` : 'GPS'}
+                            size="small"
+                            color="success"
+                            sx={{ fontSize: '0.7rem', height: 22 }}
+                        />
+                    )}
+                </Box>
                 <List disablePadding>
                     <ListItem disableGutters>
                         <ListItemAvatar>
@@ -39,9 +65,13 @@ const LocationCard = ({ locationData }) => {
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText
-                            primary={`Lat: ${locationData?.latitude?.toFixed(6) || 'N/A'}`}
+                            primary={latDisplay}
                             secondary="Latitude"
-                            primaryTypographyProps={{ fontWeight: TYPOGRAPHY.weights.semibold, color: BRAND_COLORS.slate900 }}
+                            primaryTypographyProps={{
+                                fontWeight: TYPOGRAPHY.weights.semibold,
+                                color: hasLocation ? BRAND_COLORS.slate900 : BRAND_COLORS.slate500,
+                                fontStyle: hasLocation ? 'normal' : 'italic',
+                            }}
                             secondaryTypographyProps={{ color: BRAND_COLORS.slate500 }}
                         />
                     </ListItem>
@@ -53,9 +83,13 @@ const LocationCard = ({ locationData }) => {
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText
-                            primary={`Lng: ${locationData?.longitude?.toFixed(6) || 'N/A'}`}
+                            primary={lngDisplay}
                             secondary="Longitude"
-                            primaryTypographyProps={{ fontWeight: TYPOGRAPHY.weights.semibold, color: BRAND_COLORS.slate900 }}
+                            primaryTypographyProps={{
+                                fontWeight: TYPOGRAPHY.weights.semibold,
+                                color: hasLocation ? BRAND_COLORS.slate900 : BRAND_COLORS.slate500,
+                                fontStyle: hasLocation ? 'normal' : 'italic',
+                            }}
                             secondaryTypographyProps={{ color: BRAND_COLORS.slate500 }}
                         />
                     </ListItem>
@@ -67,9 +101,13 @@ const LocationCard = ({ locationData }) => {
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText
-                            primary={locationData?.address || 'Address not available'}
+                            primary={addressDisplay}
                             secondary="Full Address"
-                            primaryTypographyProps={{ fontWeight: TYPOGRAPHY.weights.semibold, color: BRAND_COLORS.slate900 }}
+                            primaryTypographyProps={{
+                                fontWeight: TYPOGRAPHY.weights.semibold,
+                                color: hasLocation ? BRAND_COLORS.slate900 : BRAND_COLORS.slate500,
+                                fontStyle: hasLocation ? 'normal' : 'italic',
+                            }}
                             secondaryTypographyProps={{ color: BRAND_COLORS.slate500 }}
                         />
                     </ListItem>

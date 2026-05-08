@@ -89,38 +89,42 @@ const createBus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if driver exists and is active
-  const driver = await User.findById(driverId);
-  if (!driver || driver.role !== 'driver' || driver.status !== 'active') {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid driver. Driver must be active.'
-    });
+  // Validate driver if provided
+  if (driverId) {
+    const driver = await User.findById(driverId);
+    if (!driver || driver.role !== 'driver' || driver.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid driver. Driver must be active.'
+      });
+    }
+
+    // Check if driver is already assigned to another bus
+    const existingDriverBus = await Bus.findOne({ driverId, status: { $ne: 'out_of_service' } });
+    if (existingDriverBus) {
+      return res.status(400).json({
+        success: false,
+        message: 'Driver is already assigned to another bus'
+      });
+    }
   }
 
-  // Check if route exists
-  const route = await Route.findById(routeId);
-  if (!route) {
-    return res.status(400).json({
-      success: false,
-      message: 'Route not found'
-    });
-  }
-
-  // Check if driver is already assigned to another bus
-  const existingDriverBus = await Bus.findOne({ driverId, status: { $ne: 'out_of_service' } });
-  if (existingDriverBus) {
-    return res.status(400).json({
-      success: false,
-      message: 'Driver is already assigned to another bus'
-    });
+  // Validate route if provided
+  if (routeId) {
+    const route = await Route.findById(routeId);
+    if (!route) {
+      return res.status(400).json({
+        success: false,
+        message: 'Route not found'
+      });
+    }
   }
 
   // Create bus
   const bus = await Bus.create({
     busNumber,
-    driverId,
-    routeId,
+    driverId: driverId || null,
+    routeId: routeId || null,
     capacity,
     model,
     year
@@ -164,7 +168,8 @@ const updateBus = asyncHandler(async (req, res) => {
   }
 
   // Check if driver exists and is active (if driverId is being updated)
-  if (driverId && driverId !== bus.driverId.toString()) {
+  const currentDriverId = bus.driverId ? bus.driverId.toString() : null;
+  if (driverId && driverId !== currentDriverId) {
     const driver = await User.findById(driverId);
     if (!driver || driver.role !== 'driver' || driver.status !== 'active') {
       return res.status(400).json({
@@ -188,7 +193,8 @@ const updateBus = asyncHandler(async (req, res) => {
   }
 
   // Check if route exists (if routeId is being updated)
-  if (routeId && routeId !== bus.routeId.toString()) {
+  const currentRouteId = bus.routeId ? bus.routeId.toString() : null;
+  if (routeId && routeId !== currentRouteId) {
     const route = await Route.findById(routeId);
     if (!route) {
       return res.status(400).json({

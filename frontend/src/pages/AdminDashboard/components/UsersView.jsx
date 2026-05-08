@@ -86,6 +86,7 @@ const UsersView = () => {
       await userService.deleteUser(confirmDialog.id);
       toast.success('Driver application rejected');
       setPendingDrivers(prev => prev.filter(d => d._id !== confirmDialog.id));
+      setUsers(prev => prev.filter(u => u._id !== confirmDialog.id));
       setConfirmDialog({ open: false, action: null, id: null, message: '' });
     } catch (error) {
       toast.error('Failed to reject application');
@@ -168,24 +169,45 @@ const UsersView = () => {
         return;
       }
 
-      const submissionData = { ...formData };
+      if (dialogMode === 'add' && formData.role === 'driver' && !formData.drivingLicense) {
+        toast.error('Driving License Document is required');
+        return;
+      }
 
-      // Handle assignedBusId and assignedRouteId mapping back to assignedBus/assignedRoute for student/driver logic
-      // Actually backend expects `assignedBus` and `assignedRoute` for students
-      if (submissionData.role === 'student') {
-        if (submissionData.assignedBusId) submissionData.assignedBus = submissionData.assignedBusId;
-        if (submissionData.assignedRouteId) submissionData.assignedRoute = submissionData.assignedRouteId;
-        delete submissionData.assignedBusId;
-        delete submissionData.assignedRouteId;
+      let submissionData;
+      let isFormData = false;
+
+      if (dialogMode === 'add' && formData.role === 'driver') {
+        isFormData = true;
+        submissionData = new FormData();
+        submissionData.append('name', formData.name);
+        submissionData.append('email', formData.email);
+        submissionData.append('password', formData.password);
+        submissionData.append('role', formData.role);
+        if (formData.phone) submissionData.append('phone', formData.phone);
+        submissionData.append('licenseNumber', formData.licenseNumber);
+        if (formData.assignedBusId) submissionData.append('assignedBusId', formData.assignedBusId);
+        if (formData.drivingLicense) submissionData.append('drivingLicense', formData.drivingLicense);
+      } else {
+        submissionData = { ...formData };
+        if (submissionData.role === 'student') {
+          if (submissionData.assignedBusId) submissionData.assignedBus = submissionData.assignedBusId;
+          if (submissionData.assignedRouteId) submissionData.assignedRoute = submissionData.assignedRouteId;
+          delete submissionData.assignedBusId;
+          delete submissionData.assignedRouteId;
+        }
       }
 
       if (dialogMode === 'add') {
+        // Need to use authService.register or adjust userService to handle multipart/form-data headers
+        // Since userService.createUser uses axios, axios automatically sets Content-Type for FormData
         const newUser = await userService.createUser(submissionData);
         toast.success('User created successfully');
 
         // If driver and has bus assignment
-        if (submissionData.role === 'driver' && submissionData.assignedBusId) {
-          await busService.updateBus(submissionData.assignedBusId, { driverId: newUser.data.data._id });
+        const assignedBusId = isFormData ? formData.assignedBusId : submissionData.assignedBusId;
+        if (formData.role === 'driver' && assignedBusId) {
+          await busService.updateBus(assignedBusId, { driverId: newUser.data.data.user._id || newUser.data.data._id });
         }
       } else {
         await userService.updateUser(selectedUser._id, submissionData);
@@ -239,6 +261,7 @@ const UsersView = () => {
       await userService.deleteUser(confirmDialog.id);
       toast.success('User deleted successfully');
       setUsers(prev => prev.filter(u => u._id !== confirmDialog.id));
+      setPendingDrivers(prev => prev.filter(d => d._id !== confirmDialog.id));
       setConfirmDialog({ open: false, action: null, id: null, message: '' });
     } catch (error) {
       toast.error('Failed to delete user');
@@ -529,7 +552,9 @@ const UsersView = () => {
                                 >{user.name?.charAt(0)}</Avatar>
                                 <Box>
                                   <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>{user.name}</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748B', lineHeight: 1 }}>{user.studentId || user.licenseNumber || 'N/A'}</Typography>
+                                  {user.role !== 'admin' && (
+                                    <Typography variant="caption" sx={{ color: '#64748B', lineHeight: 1 }}>{user.studentId || user.licenseNumber || 'N/A'}</Typography>
+                                  )}
                                 </Box>
                               </Box>
                             </TableCell>
@@ -665,13 +690,31 @@ const UsersView = () => {
             )}
 
             {formData.role === 'driver' && (
-              <TextField
-                label="License Number"
-                value={formData.licenseNumber || ''}
-                onChange={(e) => handleFormChange('licenseNumber', e.target.value)}
-                disabled={dialogMode === 'edit'}
-                helperText={dialogMode === 'edit' ? 'License Number cannot be changed' : ''}
-              />
+              <>
+                <TextField
+                  label="License Number"
+                  value={formData.licenseNumber || ''}
+                  onChange={(e) => handleFormChange('licenseNumber', e.target.value)}
+                  disabled={dialogMode === 'edit'}
+                  helperText={dialogMode === 'edit' ? 'License Number cannot be changed' : ''}
+                />
+                {dialogMode === 'add' && (
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<PictureAsPdf />}
+                    sx={{ mt: 1, mb: 1, textTransform: 'none', justifyContent: 'flex-start' }}
+                  >
+                    {formData.drivingLicense ? formData.drivingLicense.name : "Upload Driving License (PDF)"}
+                    <input
+                      type="file"
+                      hidden
+                      accept=".pdf"
+                      onChange={(e) => handleFormChange('drivingLicense', e.target.files[0])}
+                    />
+                  </Button>
+                )}
+              </>
             )}
 
             {formData.role === 'driver' && dialogMode === 'edit' && (

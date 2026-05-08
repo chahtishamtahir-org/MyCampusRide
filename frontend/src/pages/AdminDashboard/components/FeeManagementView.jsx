@@ -6,7 +6,7 @@ import {
   Select, MenuItem, FormControl, InputLabel, Snackbar, Alert as MuiAlert
 } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
-import { Payment, Visibility } from '@mui/icons-material';
+import { Payment, Edit } from '@mui/icons-material';
 import { userService } from '../../../services';
 
 const FeeManagementView = () => {
@@ -139,7 +139,7 @@ const FeeManagementView = () => {
                             onClick={() => openDialog(student)}
                             sx={{ bgcolor: 'rgba(14, 165, 233, 0.1)', '&:hover': { bgcolor: 'rgba(14, 165, 233, 0.2)' } }}
                           >
-                            <Visibility fontSize="small" />
+                            <Edit fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </TableCell>

@@ -12,7 +12,8 @@ import {
 } from '@mui/material';
 import { Refresh, Notifications, Menu as MenuIcon, Campaign } from '@mui/icons-material';
 import NotificationPanel from '../../../components/NotificationPanel';
-import { notificationService } from '../../../services';
+import { notificationService, socketService } from '../../../services';
+
 import {
   BRAND_COLORS,
   BUTTON_STYLES,
@@ -30,7 +31,7 @@ const menuItems = [
   { id: 'profile', label: 'Profile' },
 ];
 
-const DriverHeader = ({ activeView, setActiveView, user, handleDrawerToggle, onRefresh }) => {
+const DriverHeader = ({ user, handleDrawerToggle, onRefresh }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [refreshing, setRefreshing] = useState(false);
@@ -55,7 +56,7 @@ const DriverHeader = ({ activeView, setActiveView, user, handleDrawerToggle, onR
     try {
       const response = await notificationService.getNotificationStats();
       const stats = response.data;
-      setUnreadCount(stats.unreadCount || 0);
+      setUnreadCount(stats.data?.unread || 0);
     } catch (error) {
       console.error('Error loading notification stats:', error);
       try {
@@ -72,6 +73,18 @@ const DriverHeader = ({ activeView, setActiveView, user, handleDrawerToggle, onR
 
   useEffect(() => {
     loadUnreadCount();
+
+    // Listen for new notifications in real-time
+    const handleNewNotification = (notification) => {
+      console.log('New driver notification received:', notification);
+      setUnreadCount(prev => prev + 1);
+    };
+
+    socketService.on('new-notification', handleNewNotification);
+
+    return () => {
+      socketService.off('new-notification', handleNewNotification);
+    };
   }, []);
 
   return (
@@ -114,25 +127,10 @@ const DriverHeader = ({ activeView, setActiveView, user, handleDrawerToggle, onR
               color: BRAND_COLORS.slate900,
             }}
           >
-            {menuItems.find(item => item.id === activeView)?.label || 'Driver Dashboard'}
+            Driver Dashboard
           </Typography>
 
-          {/* Send Alert Button — navigates to notifications view */}
-          <IconButton
-            onClick={() => setActiveView && setActiveView('notifications')}
-            sx={{
-              mr: 1,
-              color: BRAND_COLORS.warningOrange,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                bgcolor: 'rgba(245, 158, 11, 0.1)',
-                transform: 'scale(1.1)',
-              },
-            }}
-            title="Send Alert to Students"
-          >
-            <Campaign />
-          </IconButton>
+
 
           {/* Notification Badge */}
           <IconButton
@@ -207,7 +205,10 @@ const DriverHeader = ({ activeView, setActiveView, user, handleDrawerToggle, onR
         }}
       >
         <div style={{ width: 350 }}>
-          <NotificationPanel maxHeight={400} />
+          <NotificationPanel 
+            maxHeight={400} 
+            onCountChange={setUnreadCount}
+          />
         </div>
       </Popover>
     </>

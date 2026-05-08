@@ -19,7 +19,8 @@ import {
 import { Refresh, Notifications, Menu as MenuIcon } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import NotificationPanel from '../../../components/NotificationPanel';
-import { notificationService } from '../../../services';
+import { notificationService, socketService } from '../../../services';
+
 import {
   BRAND_COLORS,
   BUTTON_STYLES,
@@ -82,7 +83,7 @@ const AdminHeader = ({ handleDrawerToggle, onRefresh }) => {
     try {
       const response = await notificationService.getNotificationStats();
       const stats = response.data;
-      setUnreadCount(stats.unreadCount || 0);
+      setUnreadCount(stats.data?.unread || 0);
     } catch (error) {
       console.error('Error loading notification stats:', error);
       // Fallback: Load notifications and count unread
@@ -106,9 +107,21 @@ const AdminHeader = ({ handleDrawerToggle, onRefresh }) => {
     loadUnreadCount();
   };
 
-  // Load unread count on component mount
+  // Load unread count on component mount and listen for new notifications
   useEffect(() => {
     loadUnreadCount();
+
+    // Listen for new notifications in real-time
+    const handleNewNotification = (notification) => {
+      console.log('New notification received in header:', notification);
+      setUnreadCount(prev => prev + 1);
+    };
+
+    socketService.on('new-notification', handleNewNotification);
+
+    return () => {
+      socketService.off('new-notification', handleNewNotification);
+    };
   }, []);
 
   return (
@@ -234,7 +247,10 @@ const AdminHeader = ({ handleDrawerToggle, onRefresh }) => {
         }}
       >
         <div style={{ width: 350 }}>
-          <NotificationPanel maxHeight={400} />
+          <NotificationPanel 
+            maxHeight={400} 
+            onCountChange={setUnreadCount}
+          />
         </div>
       </Popover>
     </>

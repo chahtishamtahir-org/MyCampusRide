@@ -14,6 +14,8 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const Bus = require('../models/Bus');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { emitNotification } = require('../services/socketService');
+
 
 const getNotifications = asyncHandler(async (req, res) => {
   const { isRead, type, priority, page = 1, limit = 20 } = req.query;
@@ -264,6 +266,7 @@ const sendNotification = asyncHandler(async (req, res) => {
       });
 
       await notification.populate('senderId', 'name email role');
+      emitNotification(notification);
       notifications.push(notification);
     }
     else if (targetType === 'role') {
@@ -293,6 +296,7 @@ const sendNotification = asyncHandler(async (req, res) => {
       });
 
       await notification.populate('senderId', 'name email role');
+      emitNotification(notification);
       notifications.push(notification);
     }
     else if (targetType === 'bus') {
@@ -348,6 +352,7 @@ const sendNotification = asyncHandler(async (req, res) => {
           }
         });
         await notification.populate('senderId', 'name email role');
+        emitNotification(notification);
         notifications.push(notification);
       }
     }
@@ -364,6 +369,7 @@ const sendNotification = asyncHandler(async (req, res) => {
       });
 
       await notification.populate('senderId', 'name email role');
+      emitNotification(notification);
       notifications.push(notification);
     }
     else {
