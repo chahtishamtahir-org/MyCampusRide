@@ -106,11 +106,6 @@ function App() {
             }
           />
 
-          {/* Old routes - redirect to new ones */}
-          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
-          <Route path="/driver-dashboard" element={<Navigate to="/driver" replace />} />
-          <Route path="/student-dashboard" element={<Navigate to="/student" replace />} />
-
           {/* Catch all route */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

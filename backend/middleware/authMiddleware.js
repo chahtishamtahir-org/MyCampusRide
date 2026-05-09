@@ -14,7 +14,13 @@ const authMiddleware = async (req, res, next) => {
     }
 
     // Verify token
-    const secret = process.env.JWT_SECRET || 'AhtKhz1314MyCampusRideSecretKey2024';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. JWT_SECRET is not set.'
+      });
+    }
     const decoded = jwt.verify(token, secret);
     
     // Get user from database

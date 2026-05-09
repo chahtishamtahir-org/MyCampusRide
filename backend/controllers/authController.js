@@ -25,14 +25,11 @@ const { asyncHandler } = require('../middleware/errorHandler');
 //   - userId: The MongoDB _id of the user
 // Returns: A signed JWT token string
 const generateToken = (userId) => {
-  // Get the secret key from environment variables (for security)
-  // If not set, use a default (NOT recommended for production)
-  const secret = process.env.JWT_SECRET || 'AhtKhz1314MyCampusRideSecretKey2024';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set. Cannot generate token.');
+  }
 
-  // Create and sign the token
-  // - Payload: { userId } - embeds the user ID in the token
-  // - Secret: used to sign and verify the token
-  // - ExpiresIn: token validity period (7 days)
   return jwt.sign({ userId }, secret, {
     expiresIn: '7d'
   });

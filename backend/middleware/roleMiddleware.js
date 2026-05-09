@@ -25,13 +25,6 @@ const roleMiddleware = (...allowedRoles) => {
         });
       }
 
-      if (req.user.status === 'suspended') {
-        return res.status(403).json({
-          success: false,
-          message: 'Account is suspended. Please contact administrator.'
-        });
-      }
-
       next();
     } catch (error) {
       console.error('Role middleware error:', error);
@@ -46,19 +39,13 @@ const roleMiddleware = (...allowedRoles) => {
 // Specific role middlewares for convenience
 const adminOnly = roleMiddleware('admin');
 const driverOnly = roleMiddleware('driver');
-const studentOnly = roleMiddleware('student');
 const adminOrDriver = roleMiddleware('admin', 'driver');
-const adminOrStudent = roleMiddleware('admin', 'student');
-const driverOrStudent = roleMiddleware('driver', 'student');
 
 module.exports = {
   roleMiddleware,
   adminOnly,
   driverOnly,
-  studentOnly,
-  adminOrDriver,
-  adminOrStudent,
-  driverOrStudent
+  adminOrDriver
 };
 
 

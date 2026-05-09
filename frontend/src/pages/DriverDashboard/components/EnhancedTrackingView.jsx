@@ -201,13 +201,6 @@ const EnhancedDriverTracking = () => {
       // Start location tracking
       startLocationTracking();
       
-      // Notify via Socket.IO
-      socketService.sendTripStarted({
-        busId: busInfo._id,
-        routeId: busInfo.routeId?._id || busInfo.routeId,
-        driverId: 'driver-user',
-        busNumber: busInfo.busNumber
-      });
       
       console.log('🚀 Trip started successfully');
     } catch (err) {
@@ -231,13 +224,6 @@ const EnhancedDriverTracking = () => {
       setIsOnTrip(false);
       setTripStartTime(null);
       
-      // Notify via Socket.IO
-      socketService.sendTripEnded({
-        busId: busInfo._id,
-        routeId: busInfo.routeId?._id || busInfo.routeId,
-        driverId: 'driver-user',
-        busNumber: busInfo.busNumber
-      });
       
       console.log('🏁 Trip stopped successfully');
     } catch (err) {

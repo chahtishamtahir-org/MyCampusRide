@@ -190,18 +190,7 @@ class SocketService {
     console.log(`👥 Joined room: ${roomId}`);
   }
 
-  /**
-   * Leave a specific room
-   * @param {string} roomId - Room identifier
-   */
-  leaveRoom(roomId) {
-    if (!this.socket?.connected) {
-      return;
-    }
 
-    this.socket.leave(roomId);
-    console.log(`🚪 Left room: ${roomId}`);
-  }
 
   /**
    * Subscribe to an event
@@ -274,21 +263,7 @@ class SocketService {
     });
   }
 
-  /**
-   * Send trip started notification
-   * @param {Object} tripData - Trip information
-   */
-  sendTripStarted(tripData) {
-    this.emit('trip-started', tripData);
-  }
 
-  /**
-   * Send trip ended notification
-   * @param {Object} tripData - Trip information
-   */
-  sendTripEnded(tripData) {
-    this.emit('trip-ended', tripData);
-  }
 
   /**
    * Check connection status

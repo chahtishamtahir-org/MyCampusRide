@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import DriverSidebar from './components/DriverSidebar';
 import DriverHeader from './components/DriverHeader';
 import DriverOverviewView from './components/DriverOverviewView';
@@ -35,10 +34,7 @@ const DriverDashboard = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  // Update sidebar to use URL-based navigation
-  const updateSidebarForRouting = () => {
-    // The sidebar will now use react-router-dom for navigation
-  };
+
 
   return (
     <Box sx={{

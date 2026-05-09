@@ -7,9 +7,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services';
 import StudentSidebar from './components/StudentSidebar';
 import StudentHeader from './components/StudentHeader';
@@ -80,11 +79,7 @@ const StudentDashboard = () => {
     return null;
   }
 
-  // Update sidebar to use URL-based navigation
-  const updateSidebarForRouting = () => {
-    // The sidebar will now use react-router-dom for navigation
-    // instead of state-based navigation
-  };
+
 
   return (
     // Main layout container with brand gradient background
