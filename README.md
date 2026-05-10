@@ -108,7 +108,7 @@ The system is designed specifically for educational institutions looking to repl
 
 ```
 MyCampusRide/
-├── backend 3.5/          # Node.js + Express REST API + Socket.IO server
+├── backend/          # Node.js + Express REST API + Socket.IO server
 │   ├── controllers/      # Business logic (auth, users, buses, routes, tracking, notifications)
 │   ├── middleware/       # Auth guard, role guard, file upload, error handler
 │   ├── models/           # Mongoose schemas (User, Bus, Route, Notification)
@@ -116,7 +116,7 @@ MyCampusRide/
 │   ├── services/         # Socket.IO service layer
 │   └── server.js         # Application entry point
 │
-└── frontend 3.5/         # React + Vite SPA
+└── frontend/         # React + Vite SPA
     ├── src/
     │   ├── pages/
     │   │   ├── AdminDashboard/    # Admin views & components
@@ -163,21 +163,21 @@ cd MyCampusRide
 
 **2. Install backend dependencies**
 ```bash
-cd "backend 3.5"
+cd "backend"
 npm install
 ```
 
 **3. Install frontend dependencies**
 ```bash
-cd "../frontend 3.5"
+cd "../frontend"
 npm install
 ```
 
 ### Environment Variables
 
-#### Backend (`backend 3.5/.env`)
+#### Backend (`backend/.env`)
 
-Create a `.env` file in the `backend 3.5` directory with the following variables:
+Create a `.env` file in the `backend` directory with the following variables:
 
 ```env
 # Server
@@ -197,7 +197,7 @@ FRONTEND_URL=http://localhost:5173
 
 > ⚠️ **Never commit your `.env` file.** It is already listed in `.gitignore`.
 
-#### Frontend (`frontend 3.5/.env`)
+#### Frontend (`frontend/.env`)
 
 ```env
 VITE_API_URL=http://localhost:5000
@@ -205,13 +205,13 @@ VITE_API_URL=http://localhost:5000
 
 ### Running the Application
 
-**Start the backend server** (from `backend 3.5/`)
+**Start the backend server** (from `backend/`)
 ```bash
 npm run dev
 ```
 The API will be available at `http://localhost:5000`
 
-**Start the frontend dev server** (from `frontend 3.5/`)
+**Start the frontend dev server** (from `frontend/`)
 ```bash
 npm run dev
 ```
