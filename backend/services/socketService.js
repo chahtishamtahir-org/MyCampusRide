@@ -20,60 +20,6 @@ const initializeSocketService = (io) => {
   console.log('✅ Socket.IO service initialized');
 };
 
-/**
- * Emit event to all admins (admin-room)
- * @param {string} event - Event name
- * @param {Object} data - Event data
- */
-const emitToAdmins = (event, data) => {
-  if (!ioInstance) {
-    console.warn('Socket.IO not initialized');
-    return;
-  }
-  ioInstance.to('admin-room').emit(event, data);
-};
-
-/**
- * Emit event to all users on a specific route
- * @param {string} routeId - Route ID
- * @param {string} event - Event name
- * @param {Object} data - Event data
- */
-const emitToRoute = (routeId, event, data) => {
-  if (!ioInstance) {
-    console.warn('Socket.IO not initialized');
-    return;
-  }
-  ioInstance.to(`route-${routeId}`).emit(event, data);
-};
-
-/**
- * Emit event to specific bus followers
- * @param {string} busId - Bus ID
- * @param {string} event - Event name
- * @param {Object} data - Event data
- */
-const emitToBus = (busId, event, data) => {
-  if (!ioInstance) {
-    console.warn('Socket.IO not initialized');
-    return;
-  }
-  ioInstance.to(`bus-${busId}`).emit(event, data);
-};
-
-/**
- * Emit event to specific driver
- * @param {string} driverId - Driver ID
- * @param {string} event - Event name
- * @param {Object} data - Event data
- */
-const emitToDriver = (driverId, event, data) => {
-  if (!ioInstance) {
-    console.warn('Socket.IO not initialized');
-    return;
-  }
-  ioInstance.to(`driver-${driverId}`).emit(event, data);
-};
 
 /**
  * Broadcast location update to relevant rooms
@@ -159,35 +105,6 @@ const broadcastTripStatus = (tripData) => {
   console.log(`📢 Broadcast trip ${status} for bus ${busId} on route ${routeId}`);
 };
 
-/**
- * Get active room information
- * @returns {Object} Room statistics
- */
-const getRoomStats = () => {
-  if (!ioInstance) {
-    return { error: 'Socket.IO not initialized' };
-  }
-
-  // This would require access to the internal room structure
-  // For now, return basic info
-  return {
-    message: 'Room statistics available through server logs',
-    timestamp: new Date().toISOString()
-  };
-};
-
-/**
- * Force disconnect a specific socket
- * @param {string} socketId - Socket ID to disconnect
- */
-const disconnectSocket = (socketId) => {
-  if (!ioInstance) {
-    console.warn('Socket.IO not initialized');
-    return;
-  }
-  ioInstance.sockets.sockets.get(socketId)?.disconnect(true);
-  console.log(`🔌 Force disconnected socket: ${socketId}`);
-};
 
 /**
  * Emit a new notification to specific recipients or groups
@@ -228,13 +145,7 @@ const emitNotification = (notification) => {
 
 module.exports = {
   initializeSocketService,
-  emitToAdmins,
-  emitToRoute,
-  emitToBus,
-  emitToDriver,
   broadcastLocationUpdate,
   broadcastTripStatus,
-  emitNotification,
-  getRoomStats,
-  disconnectSocket
+  emitNotification
 };

@@ -98,7 +98,6 @@ The system is designed specifically for educational institutions looking to repl
 - **Real-Time:** Socket.IO Client
 - **Maps:** Leaflet + React Leaflet
 - **HTTP Client:** Axios
-- **Charts:** Recharts
 - **PDF Export:** jsPDF + html2canvas
 - **Notifications:** React Toastify
 
@@ -163,13 +162,13 @@ cd MyCampusRide
 
 **2. Install backend dependencies**
 ```bash
-cd "backend"
+cd backend
 npm install
 ```
 
 **3. Install frontend dependencies**
 ```bash
-cd "../frontend"
+cd ../frontend
 npm install
 ```
 

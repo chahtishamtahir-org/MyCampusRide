@@ -1,6 +1,6 @@
 import { toast } from 'react-toastify';
 
-export const handleUnauthorized = () => {
+const handleUnauthorized = () => {
   toast.warning("Your session has expired for security. Please log in again.", { autoClose: 4000 });
   localStorage.removeItem('user');
   window.location.href = '/login';

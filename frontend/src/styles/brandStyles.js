@@ -121,19 +121,7 @@ export const BORDER_RADIUS = {
     full: '50%',    // Full circle
 };
 
-// ============================================================================
-// SPACING
-// ============================================================================
 
-export const SPACING = {
-    xs: 0.5,   // 4px
-    sm: 1,     // 8px
-    md: 2,     // 16px
-    lg: 3,     // 24px
-    xl: 4,     // 32px
-    '2xl': 6,  // 48px
-    '3xl': 8,  // 64px
-};
 
 // ============================================================================
 // TYPOGRAPHY
@@ -393,67 +381,9 @@ export const SIDEBAR_STYLES = {
     },
 };
 
-// ============================================================================
-// ANIMATION KEYFRAMES
-// ============================================================================
 
-export const ANIMATIONS = {
-    fadeInUp: `
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  `,
 
-    fadeIn: `
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  `,
 
-    float: `
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0px);
-      }
-      50% {
-        transform: translateY(-10px);
-      }
-    }
-  `,
-
-    scaleIn: `
-    @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-  `,
-};
-
-// ============================================================================
-// RESPONSIVE BREAKPOINTS
-// ============================================================================
-
-export const BREAKPOINTS = {
-    xs: 0,      // Mobile
-    sm: 600,    // Tablet
-    md: 960,    // Small desktop
-    lg: 1280,   // Desktop
-    xl: 1920,   // Large desktop
-};
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -472,12 +402,6 @@ export const gradientText = () => ({
     backgroundClip: 'text',
 });
 
-export const hoverLift = (amount = 2) => ({
-    transition: 'all 0.3s ease',
-    '&:hover': {
-        transform: `translateY(-${amount}px)`,
-    },
-});
 
 export const gradientIconBox = (gradient = BRAND_COLORS.primaryGradient, shadow = '0 4px 16px rgba(14, 165, 233, 0.3)') => ({
     width: 48,
@@ -490,22 +414,3 @@ export const gradientIconBox = (gradient = BRAND_COLORS.primaryGradient, shadow 
     boxShadow: shadow,
 });
 
-export default {
-    BRAND_COLORS,
-    BACKGROUND_GRADIENTS,
-    SHADOWS,
-    BORDER_RADIUS,
-    SPACING,
-    TYPOGRAPHY,
-    BUTTON_STYLES,
-    INPUT_STYLES,
-    CARD_STYLES,
-    TABLE_STYLES,
-    SIDEBAR_STYLES,
-    ANIMATIONS,
-    BREAKPOINTS,
-    glassmorphism,
-    gradientText,
-    hoverLift,
-    gradientIconBox,
-};

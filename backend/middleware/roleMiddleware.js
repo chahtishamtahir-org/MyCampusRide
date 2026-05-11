@@ -42,7 +42,6 @@ const driverOnly = roleMiddleware('driver');
 const adminOrDriver = roleMiddleware('admin', 'driver');
 
 module.exports = {
-  roleMiddleware,
   adminOnly,
   driverOnly,
   adminOrDriver
