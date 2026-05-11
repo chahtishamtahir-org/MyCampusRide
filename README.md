@@ -10,7 +10,7 @@
 [![Socket.IO](https://img.shields.io/badge/Socket.IO-4.x-010101?style=for-the-badge&logo=socket.io&logoColor=white)](https://socket.io/)
 [![Express](https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
 
 *Real-time bus tracking, fleet management, and student transport coordination — all in one platform.*
 
@@ -34,7 +34,7 @@
 - [Role-Based Access](#-role-based-access)
 - [Real-Time Features](#-real-time-features)
 - [Contributing](#-contributing)
-- [License](#-license)
+
 
 ---
 
@@ -379,9 +379,7 @@ Please make sure your code follows the existing patterns and that all existing f
 
 ---
 
-## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
