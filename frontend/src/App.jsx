@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage/LandingPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import DriverDashboard from './pages/DriverDashboard/DriverDashboard';
 import StudentDashboard from './pages/StudentDashboard/StudentDashboard';
@@ -58,6 +59,10 @@ function App() {
                 <LandingPage />
               )
             }
+          />
+          <Route
+            path="/verify-email"
+            element={<VerifyEmailPage />}
           />
           <Route
             path="/login"

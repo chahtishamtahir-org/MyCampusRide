@@ -13,10 +13,12 @@
  */
 
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Route = require('../models/Route');
 const User = require('../models/User');
 const Bus = require('../models/Bus');
 const { asyncHandler } = require('../middleware/errorHandler');
+const sendEmail = require('../utils/email');
 
 // Generate JWT Token
 // This creates a secure token that proves a user is logged in
@@ -154,22 +156,34 @@ const register = asyncHandler(async (req, res) => {
   }
 
   // Create user
-  const user = await User.create(userData);
+  const user = new User(userData);
+  const verifyToken = user.createEmailVerificationToken();
+  await user.save();
 
-  // Generate token
-  const token = generateToken(user._id);
+  // Send verification email
+  const verifyURL = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verifyToken}`;
+  const message = `Please verify your email address by clicking the following link:\n\n${verifyURL}\n\nIf you did not request this, please ignore this email.`;
 
-  // Set token in cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
-  });
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'MyCampusRide - Verify your email address',
+      message
+    });
+  } catch (err) {
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    console.error('Email send error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'There was an error sending the verification email. Please try again later.'
+    });
+  }
 
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'Registration successful! Please check your email to verify your account.',
     data: {
       user
     }
@@ -197,6 +211,14 @@ const login = asyncHandler(async (req, res) => {
     return res.status(401).json({
       success: false,
       message: 'Invalid email or password'
+    });
+  }
+
+  // Check if user is verified
+  if (!user.isVerified) {
+    return res.status(401).json({
+      success: false,
+      message: 'Please verify your email address to log in'
     });
   }
 
@@ -479,6 +501,104 @@ const logout = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Verify email address
+// @route   GET /api/auth/verify-email/:token
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  // Hash token to compare with DB
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    verificationToken: hashedToken,
+    verificationTokenExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: 'Verification token is invalid or has expired'
+    });
+  }
+
+  user.isVerified = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpires = undefined;
+  
+  // Set status active for student/admin if pending, drivers stay pending for admin approval
+  if (user.role !== 'driver') {
+    user.status = 'active';
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Email verified successfully. You can now log in.'
+  });
+});
+
+// @desc    Resend email verification token
+// @route   POST /api/auth/resend-verification
+// @access  Public
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email address is required'
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'No account found with this email address'
+    });
+  }
+
+  if (user.isVerified) {
+    return res.status(400).json({
+      success: false,
+      message: 'This email address is already verified. You can log in.'
+    });
+  }
+
+  // Generate a new verification token
+  const verifyToken = user.createEmailVerificationToken();
+  await user.save();
+
+  // Send verification email
+  const verifyURL = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verifyToken}`;
+  const message = `Please verify your email address by clicking the following link:\n\n${verifyURL}\n\nIf you did not request this, please ignore this email.`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'MyCampusRide - Verify your email address',
+      message
+    });
+  } catch (err) {
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    console.error('Email resend error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'There was an error sending the verification email. Please try again later.'
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Verification email resent successfully! Please check your inbox.'
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -486,6 +606,8 @@ module.exports = {
   updateProfile,
   changePassword,
   selectRoute,
-  logout
+  logout,
+  verifyEmail,
+  resendVerificationEmail
 };
 

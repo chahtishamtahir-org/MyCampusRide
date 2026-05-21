@@ -45,7 +45,6 @@ const authReducer = (state, action) => {
       };
 
     case AUTH_ACTIONS.LOGIN_SUCCESS:
-    case AUTH_ACTIONS.REGISTER_SUCCESS:
       return {
         ...state,
         user: action.payload.user,
@@ -207,25 +206,10 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.register(userData, isFormData);
       const { user } = response.data.data;
 
-      localStorage.setItem('user', JSON.stringify(user));
+      // Note: We don't log the user in immediately anymore because they need to verify their email
+      dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
 
-      dispatch({
-        type: AUTH_ACTIONS.REGISTER_SUCCESS,
-        payload: { user },
-      });
-
-      if (user.role === 'driver' && user.status === 'pending') {
-        toast.info(
-          `Registration successful! Your driver account is pending admin approval. You will receive notification once approved.`,
-          { autoClose: 6000 }
-        );
-      } else if (user.role === 'admin') {
-        toast.success(`Admin account created successfully! Welcome to MyCampusRide.`);
-      } else if (user.role === 'student') {
-        toast.success(`Welcome to MyCampusRide, ${user.name}! Your account has been created successfully.`);
-      } else {
-        toast.success(`Welcome to MyCampusRide, ${user.name}!`);
-      }
+      toast.success(response.data.message || 'Registration successful! Please check your email to verify your account.', { autoClose: 6000 });
 
       return { success: true, user };
     } catch (error) {

@@ -7,7 +7,9 @@ const {
   updateProfile,
   changePassword,
   selectRoute,
-  logout
+  logout,
+  verifyEmail,
+  resendVerificationEmail
 } = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/fileUpload');
@@ -20,6 +22,8 @@ router.post('/register', upload.fields([
 ]), register);
 router.post('/login', login);
 router.post('/logout', logout);
+router.get('/verify-email/:token', verifyEmail);
+router.post('/resend-verification', resendVerificationEmail);
 
 // Protected routes
 router.get('/me', authMiddleware, getMe);

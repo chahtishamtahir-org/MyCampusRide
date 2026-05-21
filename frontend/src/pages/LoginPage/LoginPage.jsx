@@ -7,6 +7,7 @@ import { Login as LoginIcon, ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '../../utils/toast';
+import { authService } from '../../services';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,8 @@ const LoginPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     email: '',
     password: ''
@@ -46,7 +49,10 @@ const LoginPage = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    if (error) setError('');
+    if (error) {
+      setError('');
+      setShowResend(false);
+    }
 
     if (touched[name]) {
       if (name === 'email') {
@@ -65,6 +71,24 @@ const LoginPage = () => {
       setFieldErrors(prev => ({ ...prev, email: validateEmail(value) }));
     } else if (name === 'password') {
       setFieldErrors(prev => ({ ...prev, password: validatePassword(value) }));
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      const response = await authService.resendVerification(formData.email);
+      if (response.data.success) {
+        toast.success(response.data.message || 'Verification email resent! Please check your inbox.');
+        setError('');
+        setShowResend(false);
+      } else {
+        toast.error('Failed to resend verification email.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error resending verification email. Please try again.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -100,6 +124,11 @@ const LoginPage = () => {
       } else {
         const errorMsg = result.error || 'Login failed. Please check your credentials and try again.';
         setError(errorMsg);
+        if (errorMsg.toLowerCase().includes('verify your email')) {
+          setShowResend(true);
+        } else {
+          setShowResend(false);
+        }
       }
     } catch (err) {
       let errorMsg;
@@ -253,7 +282,27 @@ const LoginPage = () => {
                 role="alert"
                 aria-live="assertive"
               >
-                {error}
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <Typography variant="body2">{error}</Typography>
+                  {showResend && (
+                    <Button
+                      onClick={handleResendVerification}
+                      disabled={resending}
+                      size="small"
+                      sx={{
+                        mt: 1,
+                        textTransform: 'none',
+                        color: '#EF4444',
+                        fontWeight: 600,
+                        p: 0,
+                        minWidth: 0,
+                        '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                      }}
+                    >
+                      {resending ? 'Resending...' : 'Click here to resend verification email'}
+                    </Button>
+                  )}
+                </Box>
               </Alert>
             )}
 

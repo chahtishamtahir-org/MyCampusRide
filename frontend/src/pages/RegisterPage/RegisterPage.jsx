@@ -38,6 +38,7 @@ const RegisterPage = () => {
   const [drivingLicense, setDrivingLicense] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -237,17 +238,7 @@ const RegisterPage = () => {
       const result = await register(registrationData);
 
       if (result.success) {
-        if (result.user.role === 'driver' && result.user.status === 'pending') {
-          navigate('/login', { replace: true });
-        } else {
-          if (result.user.role === 'admin') {
-            navigate('/admin', { replace: true });
-          } else if (result.user.role === 'student') {
-            navigate('/student', { replace: true });
-          } else {
-            navigate('/', { replace: true });
-          }
-        }
+        setRegistrationSuccess(true);
       } else {
         const errorMsg = result.error || 'Registration failed. Please try again.';
         setError(errorMsg);
@@ -345,7 +336,32 @@ const RegisterPage = () => {
           }}
         >
           <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
-            {/* Profile Picture Upload - Replaces Generic Icon */}
+            {registrationSuccess ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <CheckCircleIcon sx={{ fontSize: 64, color: '#10B981', mb: 2 }} />
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#0F172A' }}>
+                  Registration Successful!
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#64748B', mb: 4 }}>
+                  We've sent a verification email to your address. Please check your inbox and click the verification link to activate your account.
+                </Typography>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => navigate('/login')}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: '12px',
+                    bgcolor: '#0EA5E9',
+                    '&:hover': { bgcolor: '#0284C7' }
+                  }}
+                >
+                  Go to Login
+                </Button>
+              </Box>
+            ) : (
+              <>
+                {/* Profile Picture Upload - Replaces Generic Icon */}
             <Box
               sx={{
                 display: 'flex',
@@ -951,11 +967,13 @@ const RegisterPage = () => {
                       },
                     }}
                   >
-                    Sign In
+                    Sign in
                   </Link>
                 </Typography>
               </Box>
             </form>
+            </>
+            )}
           </CardContent>
         </Card>
 
