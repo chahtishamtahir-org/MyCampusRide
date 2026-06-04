@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { asyncHandler } = require('../middleware/errorHandler');
 const sendEmail = require('../utils/email');
+const { getVerificationEmailHtml } = require('../utils/emailTemplates');
 
 // @desc    Verify email address
 // @route   GET /api/auth/verify-email/:token
@@ -78,11 +79,14 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
   const verifyURL = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verifyToken}`;
   const message = `Please verify your email address by clicking the following link:\n\n${verifyURL}\n\nIf you did not request this, please ignore this email.`;
 
+  const html = getVerificationEmailHtml(verifyURL, user.name);
+
   try {
     await sendEmail({
       email: user.email,
       subject: 'MyCampusRide - Verify your email address',
-      message
+      message,
+      html
     });
   } catch (err) {
     user.verificationToken = undefined;

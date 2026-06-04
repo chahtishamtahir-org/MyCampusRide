@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Button, CircularProgress } from '@mui/material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
@@ -11,15 +11,19 @@ const VerifyEmailPage = () => {
   
   const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
   const [message, setMessage] = useState('');
+  const hasCalled = useRef(false);
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (!token) {
-        setStatus('error');
-        setMessage('No verification token provided.');
-        return;
-      }
+    if (!token) {
+      setStatus('error');
+      setMessage('No verification token provided.');
+      return;
+    }
 
+    if (hasCalled.current) return;
+    hasCalled.current = true;
+
+    const verifyEmail = async () => {
       try {
         const response = await authService.verifyEmail(token);
         if (response.data.success) {
