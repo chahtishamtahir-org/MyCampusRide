@@ -190,6 +190,11 @@ const UserDetailDialog = ({ open, onClose, user, buses = [] }) => {
                         </Typography>
                         <InfoRow icon={<Badge sx={{ fontSize: 18, color: '#0EA5E9' }} />} label="License Number" value={user.licenseNumber} />
                         <InfoRow icon={<DirectionsBus sx={{ fontSize: 18, color: '#0EA5E9' }} />} label="Assigned Bus" value={getDriverBus()} />
+                        <InfoRow 
+                            icon={<Payment sx={{ fontSize: 18, color: '#0EA5E9' }} />} 
+                            label="Salary (PKR)" 
+                            value={user.salary ? `${user.salary.toLocaleString()} PKR` : 'N/A'} 
+                        />
 
                         {/* Driving License PDF */}
                         <Box sx={{ mt: 2 }}>

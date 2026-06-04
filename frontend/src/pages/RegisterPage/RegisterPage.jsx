@@ -28,7 +28,8 @@ const RegisterPage = () => {
     role: 'student',
     studentId: '',
     licenseNumber: '',
-    adminSecretCode: ''
+    adminSecretCode: '',
+    salary: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -108,6 +109,9 @@ const RegisterPage = () => {
     if (formData.role === 'driver' && touched.licenseNumber && !formData.licenseNumber) {
       errors.licenseNumber = 'License number is required';
     }
+    if (formData.role === 'driver' && touched.salary && !formData.salary) {
+      errors.salary = 'Salary is required';
+    }
     if (touched.drivingLicense && !drivingLicense) {
       errors.drivingLicense = 'Driving license PDF is required';
     }
@@ -148,6 +152,7 @@ const RegisterPage = () => {
       studentId: formData.role === 'student',
       licenseNumber: formData.role === 'driver',
       drivingLicense: formData.role === 'driver',
+      salary: formData.role === 'driver',
       profilePicture: true,
       adminSecretCode: formData.role === 'admin'
     });
@@ -219,6 +224,11 @@ const RegisterPage = () => {
           setLoading(false);
           return;
         }
+        if (!formData.salary) {
+          setError('Salary is required');
+          setLoading(false);
+          return;
+        }
         if (!drivingLicense) {
           setError('Driving license PDF is required');
           setLoading(false);
@@ -226,6 +236,7 @@ const RegisterPage = () => {
         }
         registrationData.append('licenseNumber', formData.licenseNumber);
         registrationData.append('drivingLicense', drivingLicense);
+        registrationData.append('salary', formData.salary);
       } else if (formData.role === 'admin') {
         if (!formData.adminSecretCode) {
           setError('Admin secret code is required');
@@ -771,6 +782,7 @@ const RegisterPage = () => {
               )}
 
               {formData.role === 'driver' && (
+                <>
                 <TextField
                   margin="normal"
                   fullWidth
@@ -798,6 +810,35 @@ const RegisterPage = () => {
                     },
                   }}
                 />
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  type="number"
+                  id="salary"
+                  label="Salary (PKR)"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.salary && !!fieldErrors.salary}
+                  helperText={touched.salary && fieldErrors.salary}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: '#0EA5E9',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#0EA5E9',
+                        borderWidth: '2px',
+                      },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#0EA5E9',
+                    },
+                  }}
+                />
+                </>
               )}
 
               {/* Driving License PDF Upload for Drivers */}

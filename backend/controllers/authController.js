@@ -101,11 +101,18 @@ const register = asyncHandler(async (req, res) => {
     userData.studentId = studentId;
     userData.feeStatus = 'pending';
   } else if (role === 'driver') {
-    const { licenseNumber } = req.body;
+    const { licenseNumber, salary } = req.body;
     if (!licenseNumber) {
       return res.status(400).json({
         success: false,
         message: 'License number is required for driver registration'
+      });
+    }
+
+    if (!salary) {
+      return res.status(400).json({
+        success: false,
+        message: 'Salary is required for driver registration'
       });
     }
 
@@ -126,6 +133,7 @@ const register = asyncHandler(async (req, res) => {
 
     userData.licenseNumber = licenseNumber;
     userData.drivingLicenseFile = 'uploads/licenses/' + files.drivingLicense[0].filename;
+    userData.salary = Number(salary);
   } else {
     return res.status(400).json({
       success: false,

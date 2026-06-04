@@ -955,6 +955,7 @@ const AdminDashboard = () => {
               </FormControl>
               {formData.role === 'student' && <TextField label="Student ID" value={formData.studentId || ''} onChange={(e) => handleFormChange('studentId', e.target.value)} disabled={dialogMode === 'user-edit'} helperText={dialogMode === 'user-edit' ? 'Student ID cannot be changed' : ''} />}
               {formData.role === 'driver' && <TextField label="License Number" value={formData.licenseNumber || ''} onChange={(e) => handleFormChange('licenseNumber', e.target.value)} disabled={dialogMode === 'user-edit'} helperText={dialogMode === 'user-edit' ? 'License Number cannot be changed' : ''} />}
+              {formData.role === 'driver' && <TextField label="Salary (PKR)" type="number" value={formData.salary || ''} onChange={(e) => handleFormChange('salary', Number(e.target.value))} />}
               {dialogMode === 'user-add' && <TextField label="Password" type="password" value={formData.password || ''} onChange={(e) => handleFormChange('password', e.target.value)} />}
             </Box>
           )}

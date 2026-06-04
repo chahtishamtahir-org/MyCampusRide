@@ -22,6 +22,8 @@ const Notification = require('../models/Notification');
 const { asyncHandler } = require('../middleware/errorHandler');
 const path = require('path');
 const fs = require('fs');
+const sendEmail = require('../utils/email');
+const { getDriverApprovalEmailHtml } = require('../utils/emailTemplates');
 
 // @desc    Get all users (Admin only)
 // @route   GET /api/users
@@ -99,7 +101,7 @@ const getUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Private/Admin
 const createUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role, phone, studentId, licenseNumber, assignedBus, assignedRoute } = req.body;
+  const { name, email, password, role, phone, studentId, licenseNumber, assignedBus, assignedRoute, salary } = req.body;
   const files = req.files || {};
 
   // Validation
@@ -107,6 +109,13 @@ const createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'Driving license PDF is required for driver registration'
+    });
+  }
+
+  if (role === 'driver' && !salary) {
+    return res.status(400).json({
+      success: false,
+      message: 'Salary is required for driver registration'
     });
   }
 
@@ -163,6 +172,7 @@ const createUser = asyncHandler(async (req, res) => {
   } else if (role === 'driver') {
     userData.licenseNumber = licenseNumber;
     userData.drivingLicenseFile = 'uploads/licenses/' + files.drivingLicense[0].filename;
+    userData.salary = Number(salary);
   }
 
   // Create user
@@ -179,7 +189,7 @@ const createUser = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/:id
 // @access  Private/Admin
 const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, phone, status, feeStatus, assignedRoute, assignedBus, isDisplaced, password } = req.body;
+  const { name, email, phone, status, feeStatus, assignedRoute, assignedBus, isDisplaced, password, salary, licenseNumber } = req.body;
 
   // Find the existing user to compare changes
   const user = await User.findById(req.params.id)
@@ -296,7 +306,7 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 
   // Build the update object
-  const updateData = { name, email, phone, status, feeStatus, assignedRoute, assignedBus, isDisplaced };
+  const updateData = { name, email, phone, status, feeStatus, assignedRoute, assignedBus, isDisplaced, salary, licenseNumber };
 
   if (password) {
     updateData.password = password;
@@ -455,6 +465,20 @@ const approveDriver = asyncHandler(async (req, res) => {
       relatedEntity: { type: 'user', id: driver._id }
     }
   );
+
+  // Send approval email
+  try {
+    const html = getDriverApprovalEmailHtml(driver.name);
+    await sendEmail({
+      email: driver.email,
+      subject: 'MyCampusRide - Driver Account Approved!',
+      message: `Congratulations ${driver.name}, your driver account has been approved by the admin. You can now log in to the driver portal.`,
+      html
+    });
+  } catch (emailErr) {
+    console.error('Error sending driver approval email:', emailErr);
+    // Do not block API response if email sending fails
+  }
 
   res.json({
     success: true,

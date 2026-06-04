@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
+import { Box, useTheme, useMediaQuery, Container, Paper, Avatar, Button, Typography } from '@mui/material';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { HourglassEmpty, Logout } from '@mui/icons-material';
 import DriverSidebar from './components/DriverSidebar';
 import DriverHeader from './components/DriverHeader';
 import DriverOverviewView from './components/DriverOverviewView';
@@ -11,7 +12,7 @@ import EnhancedTrackingView from './components/EnhancedTrackingView';
 import DriverProfileView from './components/DriverProfileView';
 import DriverPassengersView from './components/DriverPassengersView';
 import DriverNotificationsView from './components/DriverNotificationsView';
-import { BACKGROUND_GRADIENTS, SIDEBAR_STYLES, BRAND_COLORS } from '../../styles/brandStyles';
+import { BACKGROUND_GRADIENTS, SIDEBAR_STYLES, BRAND_COLORS, SHADOWS, BUTTON_STYLES, BORDER_RADIUS } from '../../styles/brandStyles';
 
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
@@ -28,6 +29,71 @@ const DriverDashboard = () => {
   if (!user || user.role !== 'driver') {
     navigate('/');
     return null;
+  }
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  if (user.status === 'pending') {
+    return (
+      <Box sx={{
+        background: BACKGROUND_GRADIENTS.driverPage || BACKGROUND_GRADIENTS.page,
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3
+      }}>
+        <Container maxWidth="sm">
+          <Paper elevation={0} sx={{
+            p: 5,
+            textAlign: 'center',
+            borderRadius: BORDER_RADIUS['2xl'],
+            boxShadow: SHADOWS.lg,
+            border: `1px solid ${BRAND_COLORS.slate300}`,
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+          }}>
+            <Box display="flex" flexDirection="column" alignItems="center" gap={3}>
+              <Avatar sx={{
+                width: 80,
+                height: 80,
+                background: BRAND_COLORS.driverGradient || BRAND_COLORS.primaryGradient,
+                boxShadow: SHADOWS.driverButtonDefault,
+              }}>
+                <HourglassEmpty sx={{ fontSize: 48, color: 'white' }} />
+              </Avatar>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: BRAND_COLORS.slate900, mb: 2 }}>
+                  Pending Approval
+                </Typography>
+                <Typography variant="body1" sx={{ color: BRAND_COLORS.slate700, fontWeight: 500, mb: 1 }}>
+                  Your driver registration has been submitted successfully.
+                </Typography>
+                <Typography variant="body2" sx={{ color: BRAND_COLORS.slate600 }}>
+                  The administrative team is currently reviewing your documents and driving license. You will receive an email/notification once your account is approved.
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<Logout />}
+                onClick={handleLogout}
+                sx={{
+                  ...BUTTON_STYLES.driver,
+                  px: 4,
+                  py: 1.5,
+                  mt: 2
+                }}
+              >
+                Logout
+              </Button>
+            </Box>
+          </Paper>
+        </Container>
+      </Box>
+    );
   }
 
   const handleDrawerToggle = () => {

@@ -130,6 +130,12 @@ const userSchema = new mongoose.Schema({
       return this.role === 'driver';
     }
   },
+  salary: {
+    type: Number,
+    required: function () {
+      return this.role === 'driver';
+    }
+  },
   // Student-specific fields
   routeNo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -176,6 +182,53 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Clear fields of other roles on validation
+userSchema.pre('validate', function (next) {
+  if (this.role === 'student') {
+    // Clear driver fields
+    this.licenseNumber = undefined;
+    this.drivingLicenseFile = undefined;
+    this.salary = undefined;
+  } else if (this.role === 'driver') {
+    // Clear student fields
+    this.studentId = undefined;
+    this.feeStatus = undefined;
+    this.isDisplaced = undefined;
+    this.feeNotes = undefined;
+    this.feeUpdatedAt = undefined;
+    this.feeUpdatedBy = undefined;
+    this.assignedRoute = undefined;
+    this.assignedBus = undefined;
+    this.routeNo = undefined;
+    this.stopName = undefined;
+    this.emergencyContact = undefined;
+    this.address = undefined;
+    this.feePaymentType = undefined;
+    this.customInstallment = undefined;
+  } else if (this.role === 'admin') {
+    // Clear both student and driver fields
+    this.studentId = undefined;
+    this.feeStatus = undefined;
+    this.isDisplaced = undefined;
+    this.feeNotes = undefined;
+    this.feeUpdatedAt = undefined;
+    this.feeUpdatedBy = undefined;
+    this.assignedRoute = undefined;
+    this.assignedBus = undefined;
+    this.routeNo = undefined;
+    this.stopName = undefined;
+    this.emergencyContact = undefined;
+    this.address = undefined;
+    this.feePaymentType = undefined;
+    this.customInstallment = undefined;
+    
+    this.licenseNumber = undefined;
+    this.drivingLicenseFile = undefined;
+    this.salary = undefined;
+  }
+  next();
 });
 
 // Hash password before saving

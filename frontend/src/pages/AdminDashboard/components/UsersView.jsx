@@ -125,6 +125,7 @@ const UsersView = () => {
       }
     } else if (user.role === 'driver') {
       data.licenseNumber = user.licenseNumber || '';
+      data.salary = user.salary || '';
       // Find known bus
       const driverBus = buses.find(bus => {
         if (bus.driverId) {
@@ -171,6 +172,11 @@ const UsersView = () => {
         return;
       }
 
+      if (formData.role === 'driver' && !formData.salary) {
+        toast.error('Salary is required');
+        return;
+      }
+
       if (dialogMode === 'add' && formData.role === 'driver' && !formData.drivingLicense) {
         toast.error('Driving License Document is required');
         return;
@@ -190,6 +196,7 @@ const UsersView = () => {
         submissionData.append('licenseNumber', formData.licenseNumber);
         if (formData.assignedBusId) submissionData.append('assignedBusId', formData.assignedBusId);
         if (formData.drivingLicense) submissionData.append('drivingLicense', formData.drivingLicense);
+        submissionData.append('salary', formData.salary);
       } else {
         submissionData = { ...formData };
         if (submissionData.role === 'student') {
@@ -526,6 +533,9 @@ const UsersView = () => {
                             return false;
                           });
                           relatedInfo = driverBus ? `Bus: ${driverBus.busNumber}` : 'No bus assigned';
+                          if (user.salary) {
+                            relatedInfo += `, Salary: ${user.salary.toLocaleString()} PKR`;
+                          }
                         } else if (user.role === 'student') {
                           if (user.assignedRoute) {
                             const routeName = typeof user.assignedRoute === 'object'
@@ -699,6 +709,13 @@ const UsersView = () => {
                   onChange={(e) => handleFormChange('licenseNumber', e.target.value)}
                   disabled={dialogMode === 'edit'}
                   helperText={dialogMode === 'edit' ? 'License Number cannot be changed' : ''}
+                />
+                <TextField
+                  label="Salary (PKR)"
+                  type="number"
+                  value={formData.salary || ''}
+                  onChange={(e) => handleFormChange('salary', e.target.value)}
+                  required
                 />
                 {dialogMode === 'add' && (
                   <Button
