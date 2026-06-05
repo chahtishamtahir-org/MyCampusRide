@@ -281,6 +281,28 @@ const FeeManagementView = () => {
                 </MenuItem>
               </Select>
             </FormControl>
+
+            {selectedStudent?.feeNotes && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: '#334155' }}>
+                  Payment History / Audit Log:
+                </Typography>
+                <Typography variant="caption" sx={{
+                  display: 'block',
+                  whiteSpace: 'pre-wrap',
+                  color: '#475569',
+                  bgcolor: '#F8FAFC',
+                  p: 1.5,
+                  borderRadius: '8px',
+                  border: '1px solid #E2E8F0',
+                  maxHeight: 150,
+                  overflowY: 'auto',
+                  fontFamily: 'inherit'
+                }}>
+                  {selectedStudent.feeNotes}
+                </Typography>
+              </Box>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>

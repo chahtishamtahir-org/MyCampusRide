@@ -52,8 +52,8 @@ const RegisterPage = () => {
 
   const validatePhone = (phone) => {
     if (!phone) return 'Phone number is required';
-    const phoneRegex = /^[0-9]{10,15}$/;
-    if (!phoneRegex.test(phone.replace(/[-\s]/g, ''))) return 'Please enter a valid phone number';
+    const phoneRegex = /^0[0-9]{10}$/;
+    if (!phoneRegex.test(phone.replace(/[-\s]/g, ''))) return 'Please enter a valid 11-digit phone number starting with 0 (e.g., 03001234567)';
     return '';
   };
 
@@ -693,8 +693,13 @@ const RegisterPage = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 onBlur={handleBlur}
+                placeholder="e.g., 03001234567"
                 error={touched.phone && !!fieldErrors.phone}
-                helperText={touched.phone && fieldErrors.phone}
+                helperText={
+                  touched.phone && fieldErrors.phone
+                    ? fieldErrors.phone
+                    : 'Format: 03XXXXXXXXX (11 digits starting with 0)'
+                }
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '12px',

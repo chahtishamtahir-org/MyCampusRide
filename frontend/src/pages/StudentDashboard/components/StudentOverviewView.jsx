@@ -512,6 +512,28 @@ const StudentOverviewView = () => {
                 <Typography variant="body2" sx={{ color: BRAND_COLORS.slate600 }}>
                   Next Due Date: {feeInfo.nextDueDate}
                 </Typography>
+
+                {user?.feeNotes && (
+                  <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${BRAND_COLORS.slate300}` }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: BRAND_COLORS.slate900, mb: 1 }}>
+                      Fee History & Notes:
+                    </Typography>
+                    <Typography variant="caption" sx={{
+                      display: 'block',
+                      whiteSpace: 'pre-wrap',
+                      color: BRAND_COLORS.slate600,
+                      maxHeight: 120,
+                      overflowY: 'auto',
+                      bgcolor: BRAND_COLORS.slate100,
+                      p: 1.5,
+                      borderRadius: BORDER_RADIUS.md,
+                      border: `1px solid ${BRAND_COLORS.slate200}`,
+                      fontFamily: 'inherit'
+                    }}>
+                      {user.feeNotes}
+                    </Typography>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>
