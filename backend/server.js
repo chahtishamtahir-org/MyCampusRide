@@ -250,6 +250,14 @@ app.use('/api/notifications', require('./routes/notifications'));
 const { errorHandler } = require('./middleware/errorHandler');
 app.use(errorHandler);
 
+// Root path endpoint (highly recommended for platform health checks)
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'Welcome to MyCampusRide Backend API'
+  });
+});
+
 // Health Check Endpoint
 // This is a simple endpoint to verify the server is running
 // Useful for monitoring and deployment health checks
@@ -283,7 +291,7 @@ mongoose.connect(mongoUri)
 const PORT = process.env.PORT || 5000;
 
 // Start the HTTP server (with Socket.IO) instead of Express server directly
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚌 MyCampusRide Backend running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⚡ Socket.IO enabled for real-time tracking`);
