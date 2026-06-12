@@ -400,11 +400,11 @@ const deleteUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // Don't allow deleting admin users
-  if (user.role === 'admin') {
+  // Don't allow deleting your own admin account
+  if (user.role === 'admin' && user._id.toString() === req.user._id.toString()) {
     return res.status(400).json({
       success: false,
-      message: 'Cannot delete admin users'
+      message: 'Cannot delete your own admin account'
     });
   }
 

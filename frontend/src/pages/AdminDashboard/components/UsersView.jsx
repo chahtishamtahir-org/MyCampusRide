@@ -15,8 +15,10 @@ import { userService, busService, routeService } from '../../../services';
 import { toast } from '../../../utils/toast';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import UserDetailDialog from './UserDetailDialog';
+import { useAuth } from '../../../context/AuthContext';
 
 const UsersView = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [pendingDrivers, setPendingDrivers] = useState([]);
   const [buses, setBuses] = useState([]);
@@ -596,9 +598,11 @@ const UsersView = () => {
                                 <IconButton size="small" onClick={() => openEditDialog(user)}>
                                   <Edit fontSize="small" />
                                 </IconButton>
-                                <IconButton size="small" onClick={() => openDeleteDialog(user._id)} color="error">
-                                  <Delete fontSize="small" />
-                                </IconButton>
+                                {currentUser && currentUser._id !== user._id && (
+                                  <IconButton size="small" onClick={() => openDeleteDialog(user._id)} color="error">
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                )}
                               </Box>
                             </TableCell>
                           </TableRow>
