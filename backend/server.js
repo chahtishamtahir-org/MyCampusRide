@@ -27,10 +27,25 @@ const app = express();
 // Create HTTP server to attach Socket.IO
 const server = createServer(app);
 
+// Configure allowed origins for CORS
+const allowedOrigins = [];
+if (process.env.FRONTEND_URL) {
+  const url = process.env.FRONTEND_URL.trim();
+  allowedOrigins.push(url);
+  if (url.endsWith('/')) {
+    allowedOrigins.push(url.slice(0, -1));
+  } else {
+    allowedOrigins.push(url + '/');
+  }
+} else {
+  allowedOrigins.push('http://localhost:3000');
+  allowedOrigins.push('http://localhost:5173');
+}
+
 // Initialize Socket.IO with CORS configuration
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -40,15 +55,17 @@ const io = new Server(server, {
 initializeSocketService(io);
 
 // CORS (Cross-Origin Resource Sharing) Configuration
-// CORS allows our frontend (running on a different port) to communicate with this backend
-// Without CORS, browsers block requests between different origins for security
 app.use(cors({
-  // Allow requests from the frontend URL
-  // In development: http://localhost:3000 (or 5173 for Vite)
-  // In production: your deployed frontend URL
-  // origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  // Allow cookies to be sent with requests (needed for authentication)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log(`⚠️ [CORS Blocked] Origin: "${origin}". Allowed origins list:`, allowedOrigins);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
