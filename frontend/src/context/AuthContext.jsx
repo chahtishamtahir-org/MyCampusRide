@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authService, socketService } from '../services';
+import { clearAuthToken } from '../services/api';
 
 import { toast } from '../utils/toast';
 
@@ -233,6 +234,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout API error:', error);
     } finally {
       localStorage.removeItem('user');
+      clearAuthToken();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
   };
