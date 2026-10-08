@@ -246,13 +246,7 @@ app.use('/api/tracking', require('./routes/tracking'));
 // Notification routes - handles sending and receiving notifications
 app.use('/api/notifications', require('./routes/notifications'));
 
-// Global Error Handling Middleware
-// This catches any errors from route handlers and formats them consistently
-// It must be defined AFTER all routes
-const { errorHandler } = require('./middleware/errorHandler');
-app.use(errorHandler);
-
-// Root path endpoint (highly recommended for platform health checks)
+// Root path endpoint (recommended for platform health checks)
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -270,6 +264,12 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Global Error Handling Middleware
+// This catches any errors from route handlers and formats them consistently
+// It must be defined AFTER all routes
+const { errorHandler } = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 // Database Connection
 // Connect to MongoDB using the connection string from environment variables
