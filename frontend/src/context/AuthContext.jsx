@@ -122,12 +122,32 @@ export const AuthProvider = ({ children }) => {
             payload: response.data.data,
           });
         } catch (error) {
-          // Token is invalid, clear storage
-          localStorage.removeItem('user');
-          dispatch({
-            type: AUTH_ACTIONS.LOAD_USER_FAILURE,
-            payload: error.response?.data?.message || 'Failed to load user',
-          });
+          // If the server explicitly rejected the credentials (401 or 403), invalidate session
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('user');
+            clearAuthToken();
+            dispatch({
+              type: AUTH_ACTIONS.LOAD_USER_FAILURE,
+              payload: error.response?.data?.message || 'Session expired. Please log in again.',
+            });
+          } else {
+            // Cold-start timeout or transient network failure:
+            // Do NOT log out the user. Fall back to existing cached user data.
+            try {
+              const cachedUser = JSON.parse(user);
+              dispatch({
+                type: AUTH_ACTIONS.LOAD_USER_SUCCESS,
+                payload: cachedUser,
+              });
+            } catch {
+              localStorage.removeItem('user');
+              clearAuthToken();
+              dispatch({
+                type: AUTH_ACTIONS.LOAD_USER_FAILURE,
+                payload: 'Failed to load user',
+              });
+            }
+          }
         }
       } else {
         dispatch({ type: AUTH_ACTIONS.LOAD_USER_FAILURE, payload: null });

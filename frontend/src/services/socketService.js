@@ -44,7 +44,7 @@ class SocketService {
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: this.reconnectDelay,
-      timeout: 10000,
+      timeout: 60000,
       withCredentials: true
     });
 
