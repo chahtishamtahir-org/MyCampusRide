@@ -13,6 +13,7 @@ import {
 import { userService } from '../../../services';
 import { BRAND_COLORS, BUTTON_STYLES, BORDER_RADIUS } from '../../../styles/brandStyles';
 import ConfirmDialog from '../../../components/ConfirmDialog';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -560,7 +561,7 @@ const FeeManagementView = () => {
                   {reviewingStudent.feeReceipt?.match(/\.(jpg|jpeg|png|webp)$/i) ? (
                     <Box
                       component="img"
-                      src={`${API_BASE}/${reviewingStudent.feeReceipt}`}
+                      src={getAssetUrl(reviewingStudent.feeReceipt)}
                       alt="Fee receipt"
                       sx={{
                         maxWidth: '100%',
@@ -577,7 +578,7 @@ const FeeManagementView = () => {
                       <Button
                         variant="outlined"
                         startIcon={<Visibility />}
-                        onClick={() => window.open(`${API_BASE}/${reviewingStudent.feeReceipt}`, '_blank')}
+                        onClick={() => window.open(getAssetUrl(reviewingStudent.feeReceipt), '_blank')}
                         sx={{
                           borderRadius: BORDER_RADIUS.md,
                           textTransform: 'none',

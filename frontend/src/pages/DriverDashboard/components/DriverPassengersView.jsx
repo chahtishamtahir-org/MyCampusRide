@@ -22,6 +22,7 @@ import {
     INPUT_STYLES,
     gradientIconBox,
 } from '../../../styles/brandStyles';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const DriverPassengersView = () => {
     const [passengers, setPassengers] = useState([]);
@@ -224,7 +225,7 @@ const DriverPassengersView = () => {
                                                     display: 'flex',
                                                 }}>
                                                     <Avatar
-                                                        src={passenger.profilePicture ? `${API_URL}/${passenger.profilePicture}` : undefined}
+                                                        src={getAssetUrl(passenger.profilePicture)}
                                                         sx={{
                                                             width: 44, height: 44,
                                                             bgcolor: BRAND_COLORS.white,

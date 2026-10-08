@@ -31,6 +31,7 @@ import {
   BUTTON_STYLES,
   gradientIconBox,
 } from '../../../styles/brandStyles';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const DriverOverviewView = () => {
   const [user, setUser] = useState(null);
@@ -169,7 +170,7 @@ const DriverOverviewView = () => {
                   display: 'flex',
                 }}>
                   <Avatar
-                    src={user?.profilePicture ? `${API_URL}/${user.profilePicture}` : undefined}
+                    src={getAssetUrl(user?.profilePicture)}
                     sx={{
                       width: 56,
                       height: 56,

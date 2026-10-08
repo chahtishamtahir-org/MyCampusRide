@@ -18,6 +18,7 @@ import { authService } from '../../../services';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../context/AuthContext';
+import { getAssetUrl } from '../../../utils/imageUrl';
 import {
   BRAND_COLORS,
   CARD_STYLES,
@@ -174,7 +175,7 @@ const DriverProfileView = () => {
                     boxShadow: SHADOWS.buttonDefault,
                   }}>
                     <Avatar
-                      src={previewUrl || (user?.profilePicture ? `${API_URL}/${user.profilePicture}` : undefined)}
+                      src={previewUrl || getAssetUrl(user?.profilePicture)}
                       sx={{
                         width: 120,
                         height: 120,

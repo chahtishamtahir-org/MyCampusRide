@@ -9,6 +9,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import LogoutConfirmDialog from '../../../components/LogoutConfirmDialog';
+import { getAssetUrl } from '../../../utils/imageUrl';
 import {
   BRAND_COLORS,
   SIDEBAR_STYLES,
@@ -176,7 +177,7 @@ const StudentSidebar = ({ user, logout, navigate, mobileOpen, handleDrawerToggle
             display: 'flex',
           }}>
             <Avatar
-              src={user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+              src={getAssetUrl(user?.profilePicture)}
               sx={{
                 bgcolor: BRAND_COLORS.white,
                 color: BRAND_COLORS.skyBlue,

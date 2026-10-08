@@ -26,6 +26,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import LogoutConfirmDialog from '../../../components/LogoutConfirmDialog';
+import { getAssetUrl } from '../../../utils/imageUrl';
 import { BRAND_COLORS, SIDEBAR_STYLES, gradientText, BORDER_RADIUS } from '../../../styles/brandStyles';
 
 // Sidebar width constant (matches design system)
@@ -192,7 +193,7 @@ const AdminSidebar = ({ user, logout, navigate, mobileOpen, handleDrawerToggle }
             background: BRAND_COLORS.primaryGradient,
           }}>
             <Avatar
-              src={user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+              src={getAssetUrl(user?.profilePicture)}
               sx={{
                 bgcolor: BRAND_COLORS.white,
                 color: BRAND_COLORS.skyBlue,

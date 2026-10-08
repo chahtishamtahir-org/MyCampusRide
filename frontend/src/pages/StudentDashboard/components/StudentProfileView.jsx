@@ -23,6 +23,7 @@ import VirtualTransportCard from './VirtualTransportCard';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../context/AuthContext';
+import { getAssetUrl } from '../../../utils/imageUrl';
 import {
   BRAND_COLORS,
   CARD_STYLES,
@@ -215,7 +216,7 @@ const StudentProfileView = () => {
                       display: 'inline-flex',
                     }}>
                       <Avatar
-                        src={previewUrl || (user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined)}
+                        src={previewUrl || getAssetUrl(user?.profilePicture)}
                         sx={{
                           width: 120,
                           height: 120,

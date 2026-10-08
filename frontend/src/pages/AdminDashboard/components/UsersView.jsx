@@ -16,6 +16,7 @@ import { toast } from '../../../utils/toast';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import UserDetailDialog from './UserDetailDialog';
 import { useAuth } from '../../../context/AuthContext';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const UsersView = () => {
   const { user: currentUser } = useAuth();
@@ -341,7 +342,7 @@ const UsersView = () => {
                           <TableCell>
                             <Box display="flex" alignItems="center" gap={2}>
                               <Avatar
-                                src={driver.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${driver.profilePicture}` : undefined}
+                                src={getAssetUrl(driver.profilePicture)}
                               >{driver.name?.charAt(0)}</Avatar>
                               <Typography>{driver.name}</Typography>
                             </Box>
@@ -561,7 +562,7 @@ const UsersView = () => {
                             <TableCell>
                               <Box display="flex" alignItems="center" gap={1.5}>
                                 <Avatar
-                                  src={user.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+                                  src={getAssetUrl(user.profilePicture)}
                                   sx={{ width: 32, height: 32, fontSize: 14 }}
                                 >{user.name?.charAt(0)}</Avatar>
                                 <Box>

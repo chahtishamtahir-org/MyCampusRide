@@ -8,6 +8,7 @@ import { authService } from '../../../services';
 import PasswordChangeForm from '../../../components/PasswordChangeForm';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../context/AuthContext';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const AdminProfileView = () => {
   const { updateUser } = useAuth();
@@ -148,7 +149,7 @@ const AdminProfileView = () => {
               <Box textAlign="center" mb={4}>
                 <Box sx={{ position: 'relative', display: 'inline-block' }}>
                   <Avatar
-                    src={previewUrl || (user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined)}
+                    src={previewUrl || getAssetUrl(user?.profilePicture)}
                     sx={{ width: 120, height: 120, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '2rem' }}
                   >
                     {user?.name?.charAt(0).toUpperCase() || 'A'}

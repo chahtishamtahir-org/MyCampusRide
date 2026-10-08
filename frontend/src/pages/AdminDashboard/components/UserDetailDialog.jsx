@@ -8,6 +8,7 @@ import {
     Payment, PictureAsPdf, Download, OpenInNew, CalendarToday
 } from '@mui/icons-material';
 import { userService } from '../../../services';
+import { getAssetUrl } from '../../../utils/imageUrl';
 
 const InfoRow = ({ icon, label, value, chip, chipColor }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.5 }}>
@@ -87,6 +88,11 @@ const UserDetailDialog = ({ open, onClose, user, buses = [] }) => {
         setLicenseLoading(true);
         setLicenseError('');
         try {
+            // If already a full Cloudinary/external URL, open directly in a new tab
+            if (user.drivingLicenseFile && (user.drivingLicenseFile.startsWith('http://') || user.drivingLicenseFile.startsWith('https://'))) {
+                window.open(user.drivingLicenseFile, '_blank');
+                return;
+            }
             const response = await userService.getDriverLicense(user._id);
             // Create a blob URL and open it
             const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -118,7 +124,7 @@ const UserDetailDialog = ({ open, onClose, user, buses = [] }) => {
                 </IconButton>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar
-                        src={user.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+                        src={getAssetUrl(user.profilePicture)}
                         sx={{ width: 56, height: 56, bgcolor: 'rgba(255,255,255,0.2)', fontSize: 24, fontWeight: 700 }}
                     >
                         {user.name?.charAt(0)?.toUpperCase()}
@@ -207,9 +213,9 @@ const UserDetailDialog = ({ open, onClose, user, buses = [] }) => {
                                     bgcolor: '#FEF2F2', borderRadius: '10px', border: '1px solid #FECACA'
                                 }}>
                                     <PictureAsPdf sx={{ fontSize: 36, color: '#EF4444' }} />
-                                    <Box sx={{ flex: 1 }}>
-                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A' }}>
-                                            {user.drivingLicenseFile}
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {user.drivingLicenseFile.split('/').pop() || 'Driving License Document'}
                                         </Typography>
                                         <Typography variant="caption" sx={{ color: '#64748B' }}>
                                             PDF Document

@@ -18,6 +18,7 @@ import {
   DirectionsBus, Person, School, Receipt,
   CalendarToday, Badge as BadgeIcon, Download
 } from '@mui/icons-material';
+import { getAssetUrl } from '../../../utils/imageUrl';
 import {
   BRAND_COLORS,
   BORDER_RADIUS,
@@ -184,7 +185,7 @@ const VirtualTransportCard = ({ user, assignedBus, assignedRoute }) => {
                   display: 'flex',
                 }}>
                   <Avatar
-                    src={user?.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${user.profilePicture}` : undefined}
+                    src={getAssetUrl(user?.profilePicture)}
                     sx={{
                       width: 64,
                       height: 64,
