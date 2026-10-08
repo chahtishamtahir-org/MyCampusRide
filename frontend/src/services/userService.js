@@ -12,9 +12,7 @@ export const userService = {
   rejectDriver: (id, reason) => makeApiRequest(() => api.put(`/api/users/${id}/reject`, { reason })),
   getPendingDrivers: () => makeApiRequest(() => api.get('/api/users/pending-drivers')),
   getUserStats: () => makeApiRequest(() => api.get('/api/users/stats')),
-  createUser: (data) => makeApiRequest(() => api.post('/api/users', data, data instanceof FormData ? {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  } : {})),
+  createUser: (data) => makeApiRequest(() => api.post('/api/users', data)),
   getDriverLicense: (id) => makeApiRequest(() => api.get(`/api/users/${id}/license`, { responseType: 'blob' })),
   getDriverLicenseUrl: (id) => `${API_BASE}/api/users/${id}/license`,
   markFeeDefaulters: () => makeApiRequest(() => api.put('/api/users/action/mark-defaulters')),

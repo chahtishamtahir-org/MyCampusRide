@@ -18,6 +18,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+
+    // When sending FormData, remove default Content-Type so Axios and the browser
+    // automatically generate 'multipart/form-data; boundary=----WebKitFormBoundary...'
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

@@ -221,10 +221,7 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.REGISTER_START });
 
-      // If userData is FormData (driver registration with file upload), 
-      // we need to use multipart/form-data content type
-      const isFormData = userData instanceof FormData;
-      const response = await authService.register(userData, isFormData);
+      const response = await authService.register(userData);
       const { user } = response.data.data;
 
       // Note: We don't log the user in immediately anymore because they need to verify their email
