@@ -91,7 +91,8 @@ const updateProfile = asyncHandler(async (req, res) => {
   }
 
   if (req.file) {
-    updateData.profilePicture = 'uploads/profiles/' + req.file.filename;
+    // req.file.path is the permanent Cloudinary URL after upload
+    updateData.profilePicture = req.file.path;
   }
 
   const user = await User.findByIdAndUpdate(
@@ -259,7 +260,8 @@ const uploadFeeReceipt = asyncHandler(async (req, res) => {
     });
   }
 
-  const feeReceiptPath = 'uploads/fee-receipts/' + req.file.filename;
+  // req.file.path is the permanent Cloudinary URL after upload
+  const feeReceiptPath = req.file.path;
 
   const updatedUser = await User.findByIdAndUpdate(
     userId,

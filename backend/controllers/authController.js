@@ -62,7 +62,8 @@ const register = asyncHandler(async (req, res) => {
   };
 
   if (files.profilePicture && files.profilePicture.length > 0) {
-    userData.profilePicture = 'uploads/profiles/' + files.profilePicture[0].filename;
+    // req.file.path is the permanent Cloudinary URL after upload
+    userData.profilePicture = files.profilePicture[0].path;
   }
 
   // 4. Role-specific validation and data assignment
@@ -132,7 +133,8 @@ const register = asyncHandler(async (req, res) => {
     }
 
     userData.licenseNumber = licenseNumber;
-    userData.drivingLicenseFile = 'uploads/licenses/' + files.drivingLicense[0].filename;
+    // req.file.path is the permanent Cloudinary URL after upload
+    userData.drivingLicenseFile = files.drivingLicense[0].path;
     userData.salary = Number(salary);
   } else {
     return res.status(400).json({

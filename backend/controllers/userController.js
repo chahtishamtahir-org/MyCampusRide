@@ -160,7 +160,8 @@ const createUser = asyncHandler(async (req, res) => {
   };
 
   if (files.profilePicture && files.profilePicture.length > 0) {
-    userData.profilePicture = 'uploads/profiles/' + files.profilePicture[0].filename;
+    // req.file.path is the permanent Cloudinary URL after upload
+    userData.profilePicture = files.profilePicture[0].path;
   }
 
   // Add role-specific fields
@@ -171,7 +172,8 @@ const createUser = asyncHandler(async (req, res) => {
     if (assignedRoute) userData.assignedRoute = assignedRoute;
   } else if (role === 'driver') {
     userData.licenseNumber = licenseNumber;
-    userData.drivingLicenseFile = 'uploads/licenses/' + files.drivingLicense[0].filename;
+    // req.file.path is the permanent Cloudinary URL after upload
+    userData.drivingLicenseFile = files.drivingLicense[0].path;
     userData.salary = Number(salary);
   }
 
@@ -619,18 +621,8 @@ const getDriverLicense = asyncHandler(async (req, res) => {
     });
   }
 
-  const filePath = path.join(__dirname, '..', user.drivingLicenseFile);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({
-      success: false,
-      message: 'Driving license file not found on server'
-    });
-  }
-
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `inline; filename="${user.drivingLicenseFile}"`);
-  res.sendFile(filePath);
+  // Cloudinary URL — redirect the browser directly to the file
+  res.redirect(user.drivingLicenseFile);
 });
 
 // @desc    Mark partially paid students as defaulters and unassign from buses
@@ -834,26 +826,8 @@ const getFeeReceipt = asyncHandler(async (req, res) => {
     });
   }
 
-  const filePath = path.join(__dirname, '..', user.feeReceipt);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({
-      success: false,
-      message: 'Fee receipt file not found on server'
-    });
-  }
-
-  // Determine content type based on file extension
-  const ext = path.extname(filePath).toLowerCase();
-  let contentType = 'application/octet-stream';
-  if (ext === '.pdf') contentType = 'application/pdf';
-  else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-  else if (ext === '.png') contentType = 'image/png';
-  else if (ext === '.webp') contentType = 'image/webp';
-
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Content-Disposition', `inline; filename="${path.basename(user.feeReceipt)}"`);
-  res.sendFile(filePath);
+  // Cloudinary URL — redirect the browser directly to the file
+  res.redirect(user.feeReceipt);
 });
 
 module.exports = {

@@ -1,47 +1,42 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Ensure upload directories exist
-const uploadBaseDir = path.join(__dirname, '..', 'uploads');
-const licensesDir = path.join(uploadBaseDir, 'licenses');
-const profilesDir = path.join(uploadBaseDir, 'profiles');
-const feeReceiptsDir = path.join(uploadBaseDir, 'fee-receipts');
-
-[licensesDir, profilesDir, feeReceiptsDir].forEach(dir => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+// Configure Cloudinary using environment variables
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Sanitize filename
-const sanitize = (str) => str.replace(/[^a-zA-Z0-9_-]/g, '_');
+// Cloudinary storage — each field goes to its own folder in your Cloudinary account
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: (req, file) => {
+        let folder = 'mycampusride/misc';
+        let resource_type = 'auto'; // 'auto' handles both images and PDFs
 
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        if (file.fieldname === 'drivingLicense') {
-            cb(null, licensesDir);
-        } else if (file.fieldname === 'profilePicture') {
-            cb(null, profilesDir);
+        if (file.fieldname === 'profilePicture') {
+            folder = 'mycampusride/profiles';
+            resource_type = 'image';
+        } else if (file.fieldname === 'drivingLicense') {
+            folder = 'mycampusride/licenses';
+            resource_type = 'raw'; // PDFs must use 'raw'
         } else if (file.fieldname === 'feeReceipt') {
-            cb(null, feeReceiptsDir);
-        } else {
-            cb(new Error('Invalid field name'), false);
+            folder = 'mycampusride/fee-receipts';
+            resource_type = 'auto'; // Can be PDF or image
         }
-    },
-    filename: (req, file, cb) => {
-        // Generate unique filename
-        // Format: fieldname_timestamp_sanitizedName.ext
-        const name = sanitize(req.body.name || 'unknown');
-        const timestamp = Date.now();
-        const ext = path.extname(file.originalname);
-        const filename = `${file.fieldname}_${timestamp}_${name}${ext}`;
-        cb(null, filename);
+
+        return {
+            folder,
+            resource_type,
+            // unique public_id using timestamp
+            public_id: `${file.fieldname}_${Date.now()}`
+        };
     }
 });
 
-// File filter
+// File filter — same validation as before
 const fileFilter = (req, file, cb) => {
     if (file.fieldname === 'drivingLicense') {
         if (file.mimetype === 'application/pdf') {
@@ -66,7 +61,9 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Create multer instance
+// Create multer instance with Cloudinary storage
+// After upload: req.file.path  → permanent Cloudinary URL (e.g. https://res.cloudinary.com/...)
+//               req.file.filename → Cloudinary public_id
 const upload = multer({
     storage,
     fileFilter,
